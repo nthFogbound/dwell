@@ -1,27 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/navigation/navigation_provider.dart';
 import '../../features/courses/courses_screen.dart';
 import '../../features/flashcards/flashcards_screen.dart';
 import '../../features/progress/progress_screen.dart';
 import '../../features/quiz/quiz_screen.dart';
 
 /// The main layout: a navigation rail on the left, the active screen on the right.
-class AppShell extends StatefulWidget {
+class AppShell extends StatelessWidget {
   const AppShell({super.key});
-
-  @override
-  State<AppShell> createState() => _AppShellState();
-}
-
-class _AppShellState extends State<AppShell> {
-  // Temporary: Step 4 moves this into Provider.
-  int _selectedIndex = 0;
-
-  static const _screens = <Widget>[
-    CoursesScreen(),
-    FlashcardsScreen(),
-    QuizScreen(),
-    ProgressScreen(),
-  ];
 
   static const _destinations = <NavigationRailDestination>[
     NavigationRailDestination(
@@ -46,20 +33,37 @@ class _AppShellState extends State<AppShell> {
     ),
   ];
 
+  Widget _screenFor(AppSection section) {
+    switch (section) {
+      case AppSection.courses:
+        return const CoursesScreen();
+      case AppSection.flashcards:
+        return const FlashcardsScreen();
+      case AppSection.quiz:
+        return const QuizScreen();
+      case AppSection.progress:
+        return const ProgressScreen();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // watch: rebuild this widget whenever NavigationProvider notifies.
+    final nav = context.watch<NavigationProvider>();
+
     return Scaffold(
       body: Row(
         children: [
           NavigationRail(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+            selectedIndex: nav.current.index,
+            onDestinationSelected: (i) =>
+                // read: call a method without subscribing to changes.
+                context.read<NavigationProvider>().select(AppSection.values[i]),
             labelType: NavigationRailLabelType.all,
             destinations: _destinations,
           ),
           const VerticalDivider(width: 1),
-          // Expanded makes the screen fill all remaining width.
-          Expanded(child: _screens[_selectedIndex]),
+          Expanded(child: _screenFor(nav.current)),
         ],
       ),
     );
