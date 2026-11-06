@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'app.dart';
 import 'core/navigation/navigation_provider.dart';
+import 'data/database/app_database.dart';
+import 'data/repositories/course_repository.dart';
+import 'features/courses/courses_provider.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => NavigationProvider()),
-        // Phase 2+: database and repository providers will be added here.
+        Provider<AppDatabase>(
+          create: (_) => AppDatabase(),
+          dispose: (_, db) => db.close(),
+        ),
+        Provider<CourseRepository>(
+          create: (context) => CourseRepository(context.read<AppDatabase>()),
+        ),
+        ChangeNotifierProvider<CoursesProvider>(
+          create: (context) =>
+              CoursesProvider(context.read<CourseRepository>()),
+        ),
       ],
       child: const DwellApp(),
     ),
