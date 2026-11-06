@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/database/app_database.dart';
 import 'courses_provider.dart';
 import 'widgets/course_form_dialog.dart';
+import 'course_detail_screen.dart';
 
 class CoursesScreen extends StatelessWidget {
   const CoursesScreen({super.key});
@@ -109,6 +110,8 @@ Widget build(BuildContext context) {
         return Card(
           margin: EdgeInsets.zero,
           child: ListTile(
+            onTap: () =>
+            Navigator.of(context).push(CourseDetailScreen.route(course)),
             title: Text(course.name),
             subtitle:
                 course.description == null ? null : Text(course.description!),

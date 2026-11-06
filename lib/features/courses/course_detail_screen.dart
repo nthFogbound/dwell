@@ -1,0 +1,146 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../data/database/app_database.dart';
+import '../../data/repositories/topic_repository.dart';
+import 'topics_provider.dart';
+import 'widgets/topic_form_dialog.dart';
+
+class CourseDetailScreen extends StatelessWidget {
+  const CourseDetailScreen({super.key, required this.course});
+
+  final Course course;
+
+  /// Opens this page with its own TopicsProvider for the given course.
+  static Route<void> route(Course course) {
+    return MaterialPageRoute<void>(
+      builder: (context) => ChangeNotifierProvider(
+        create: (context) =>
+            TopicsProvider(context.read<TopicRepository>(), course.id),
+        child: CourseDetailScreen(course: course),
+      ),
+    );
+  }
+
+  Future<void> _addTopic(BuildContext context) async {
+    final provider = context.read<TopicsProvider>();
+    final name = await showTopicFormDialog(context);
+    if (name == null) return;
+    await provider.addTopic(name);
+  }
+
+  Future<void> _editTopic(BuildContext context, Topic topic) async {
+    final provider = context.read<TopicsProvider>();
+    final name = await showTopicFormDialog(context, topic: topic);
+    if (name == null) return;
+    await provider.updateTopic(id: topic.id, name: name);
+  }
+
+  Future<void> _deleteTopic(BuildContext context, Topic topic) async {
+    final provider = context.read<TopicsProvider>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete topic?'),
+        content: Text('"${topic.name}" will be permanently deleted.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await provider.deleteTopic(topic.id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<TopicsProvider>();
+    final description = course.description;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(course.name)),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (description != null) ...[
+              Text(description),
+              const SizedBox(height: 16),
+            ],
+            Row(
+              children: [
+                Text(
+                  'Topics',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: () => _addTopic(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('New topic'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Expanded(child: _buildBody(context, provider)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, TopicsProvider provider) {
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (provider.error != null) {
+      return Center(child: Text('Something went wrong: ${provider.error}'));
+    }
+    if (provider.topics.isEmpty) {
+      return const Center(
+        child: Text('No topics yet. Add one to organize this course.'),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: provider.topics.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final topic = provider.topics[index];
+        return Card(
+          margin: EdgeInsets.zero,
+          child: ListTile(
+            title: Text(topic.name),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Edit',
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () => _editTopic(context, topic),
+                ),
+                IconButton(
+                  tooltip: 'Delete',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _deleteTopic(context, topic),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
