@@ -6,7 +6,7 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Courses, Topics])
+@DriftDatabase(tables: [Courses, Topics, Flashcards])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
       : super(
@@ -20,10 +20,15 @@ class AppDatabase extends _$AppDatabase {
         );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          await m.createTable(flashcards);
+        }
+      },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
