@@ -5,6 +5,7 @@ import '../../data/database/app_database.dart';
 import '../../data/repositories/topic_repository.dart';
 import 'topics_provider.dart';
 import 'widgets/topic_form_dialog.dart';
+import 'flashcards_screen.dart';
 
 class CourseDetailScreen extends StatelessWidget {
   const CourseDetailScreen({super.key, required this.course});
@@ -123,6 +124,7 @@ class CourseDetailScreen extends StatelessWidget {
           margin: EdgeInsets.zero,
           child: ListTile(
             title: Text(topic.name),
+            onTap: () => Navigator.of(context).push(FlashcardsScreen.route(topic)),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
