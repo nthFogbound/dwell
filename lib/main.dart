@@ -6,6 +6,7 @@ import 'core/navigation/navigation_provider.dart';
 import 'data/database/app_database.dart';
 import 'data/repositories/course_repository.dart';
 import 'data/repositories/topic_repository.dart';
+import 'data/repositories/flashcard_repository.dart';
 import 'features/courses/courses_provider.dart';
 
 void main() {
@@ -22,6 +23,9 @@ void main() {
         ),
         Provider<TopicRepository>(
           create: (context) => TopicRepository(context.read<AppDatabase>()),
+        ),
+        Provider<FlashcardRepository>(
+          create: (context) => FlashcardRepository(context.read<AppDatabase>()),
         ),
         ChangeNotifierProvider<CoursesProvider>(
           create: (context) =>
