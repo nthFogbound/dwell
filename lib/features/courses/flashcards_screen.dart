@@ -5,6 +5,7 @@ import '../../data/database/app_database.dart';
 import '../../data/repositories/flashcard_repository.dart';
 import 'flashcards_provider.dart';
 import 'widgets/flashcard_form_dialog.dart';
+import 'review_screen.dart';
 
 class FlashcardsScreen extends StatelessWidget {
   const FlashcardsScreen({super.key, required this.topic});
@@ -83,6 +84,15 @@ class FlashcardsScreen extends StatelessWidget {
                 Text(
                   'Flashcards',
                   style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const Spacer(),
+                OutlinedButton.icon(
+                  onPressed: provider.flashcards.isEmpty
+                      ? null
+                      : () => Navigator.of(context)
+                          .push(ReviewScreen.route(topic)),
+                  icon: const Icon(Icons.style_outlined),
+                  label: const Text('Review'),
                 ),
                 const Spacer(),
                 FilledButton.icon(
