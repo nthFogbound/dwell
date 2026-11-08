@@ -29,14 +29,21 @@ class CourseDetailScreen extends StatelessWidget {
 
   Future<void> _addTopic(BuildContext context) async {
     final provider = context.read<TopicsProvider>();
-    final name = await showTopicFormDialog(context);
+    final name = await showTopicFormDialog(
+      context,
+      isNameTaken: (name) => provider.isNameTaken(name),
+    );
     if (name == null) return;
     await provider.addTopic(name);
   }
 
   Future<void> _editTopic(BuildContext context, Topic topic) async {
     final provider = context.read<TopicsProvider>();
-    final name = await showTopicFormDialog(context, topic: topic);
+    final name = await showTopicFormDialog(
+      context,
+      topic: topic,
+      isNameTaken: (name) => provider.isNameTaken(name, excludeId: topic.id),
+    );
     if (name == null) return;
     await provider.updateTopic(id: topic.id, name: name);
   }
@@ -46,7 +53,10 @@ class CourseDetailScreen extends StatelessWidget {
     final confirmed = await showConfirmDeleteDialog(
       context,
       title: 'Delete topic?',
-      message: '"${topic.name}" will be permanently deleted.',
+      message:
+          '"${topic.name}" and all of its flashcards will be permanently '
+          'deleted. Past quiz results are kept, but will show as whole-course '
+          'quizzes.',
     );
     if (!confirmed) return;
     await provider.deleteTopic(topic.id);
@@ -66,8 +76,7 @@ class CourseDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (description != null) ...[
-              Text(description),
-              const SizedBox(height: 16),
+              Text(description, maxLines: 3, overflow: TextOverflow.ellipsis),
             ],
             Row(
               children: [

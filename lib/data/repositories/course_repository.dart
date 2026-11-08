@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
+import 'duplicate_name_exception.dart';
 
 class CourseRepository {
   CourseRepository(this._db);
@@ -15,7 +16,23 @@ class CourseRepository {
     )..orderBy([(t) => OrderingTerm.asc(t.name)])).watch();
   }
 
-  Future<int> addCourse({required String name, String? description}) {
+  /// True if another course already uses this name (ignoring upper/lower case
+  /// and surrounding spaces). Pass [excludeId] when editing, so a course
+  /// doesn't clash with itself.
+  Future<bool> isNameTaken(String name, {int? excludeId}) async {
+    final wanted = name.trim().toLowerCase();
+    final courses = await _db.select(_db.courses).get();
+    return courses.any(
+      (c) => c.id != excludeId && c.name.toLowerCase() == wanted,
+    );
+  }
+
+  Future<int> addCourse({required String name, String? description}) async {
+    if (await isNameTaken(name)) {
+      throw const DuplicateNameException(
+        'A course with this name already exists.',
+      );
+    }
     return _db
         .into(_db.courses)
         .insert(
@@ -30,7 +47,12 @@ class CourseRepository {
     required int id,
     required String name,
     String? description,
-  }) {
+  }) async {
+    if (await isNameTaken(name, excludeId: id)) {
+      throw const DuplicateNameException(
+        'A course with this name already exists.',
+      );
+    }
     return (_db.update(_db.courses)..where((t) => t.id.equals(id))).write(
       CoursesCompanion(
         name: Value(name.trim()),
@@ -39,7 +61,8 @@ class CourseRepository {
     );
   }
 
-  /// Also deletes the course's topics (cascade, set up in tables.dart).
+  /// Also deletes the course's topics, their flashcards and the course's
+  /// quiz attempts (cascades, set up in tables.dart).
   Future<int> deleteCourse(int id) {
     return (_db.delete(_db.courses)..where((t) => t.id.equals(id))).go();
   }

@@ -44,6 +44,9 @@ class CoursesProvider extends ChangeNotifier {
 
   Future<void> deleteCourse(int id) => _repository.deleteCourse(id);
 
+  Future<bool> isNameTaken(String name, {int? excludeId}) =>
+      _repository.isNameTaken(name, excludeId: excludeId);
+
   @override
   void dispose() {
     _subscription.cancel();

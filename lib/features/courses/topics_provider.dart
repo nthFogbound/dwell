@@ -46,6 +46,13 @@ class TopicsProvider extends ChangeNotifier {
 
   Future<void> deleteTopic(int id) => _repository.deleteTopic(id);
 
+  Future<bool> isNameTaken(String name, {int? excludeId}) =>
+      _repository.isNameTaken(
+        courseId: courseId,
+        name: name,
+        excludeId: excludeId,
+      );
+
   @override
   void dispose() {
     _subscription.cancel();

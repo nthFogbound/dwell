@@ -5,20 +5,25 @@ import '../../../data/database/app_database.dart';
 /// What the dialog returns when the user presses Save.
 typedef CourseFormResult = ({String name, String? description});
 
+/// [isNameTaken] lets the caller (via its provider) say whether a name is
+/// already used, so the dialog can show an error instead of closing.
 Future<CourseFormResult?> showCourseFormDialog(
   BuildContext context, {
   Course? course,
+  required Future<bool> Function(String name) isNameTaken,
 }) {
   return showDialog<CourseFormResult>(
     context: context,
-    builder: (_) => _CourseFormDialog(course: course),
+    builder: (_) =>
+        _CourseFormDialog(course: course, isNameTaken: isNameTaken),
   );
 }
 
 class _CourseFormDialog extends StatefulWidget {
-  const _CourseFormDialog({this.course});
+  const _CourseFormDialog({this.course, required this.isNameTaken});
 
   final Course? course;
+  final Future<bool> Function(String name) isNameTaken;
 
   @override
   State<_CourseFormDialog> createState() => _CourseFormDialogState();
@@ -31,6 +36,9 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
     text: widget.course?.description,
   );
 
+  String? _nameError; // set when the name is already taken
+  bool _saving = false; // blocks double-clicks while the check runs
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -38,10 +46,24 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
     super.dispose();
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _submit() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
+
+    final name = _nameController.text.trim();
+    setState(() => _saving = true);
+    final taken = await widget.isNameTaken(name);
+    if (!mounted) return;
+
+    if (taken) {
+      setState(() {
+        _saving = false;
+        _nameError = 'A course with this name already exists';
+      });
+      return;
+    }
+
     Navigator.of(context).pop((
-      name: _nameController.text.trim(),
+      name: name,
       description: _descriptionController.text,
     ));
   }
@@ -63,7 +85,14 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
                 controller: _nameController,
                 autofocus: true,
                 maxLength: 100,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  errorText: _nameError,
+                ),
+                onChanged: (_) {
+                  if (_nameError != null) setState(() => _nameError = null);
+                },
+                onFieldSubmitted: (_) => _submit(), // Enter key saves.
                 validator: (value) => (value == null || value.trim().isEmpty)
                     ? 'Enter a course name'
                     : null,
@@ -73,6 +102,7 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
                 controller: _descriptionController,
                 minLines: 1,
                 maxLines: 3,
+                maxLength: 500,
                 decoration: const InputDecoration(
                   labelText: 'Description (optional)',
                 ),
@@ -86,7 +116,10 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        FilledButton(onPressed: _submit, child: const Text('Save')),
+        FilledButton(
+          onPressed: _saving ? null : _submit,
+          child: const Text('Save'),
+        ),
       ],
     );
   }

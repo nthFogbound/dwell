@@ -14,7 +14,10 @@ class CoursesScreen extends StatelessWidget {
 
   Future<void> _addCourse(BuildContext context) async {
     final provider = context.read<CoursesProvider>();
-    final result = await showCourseFormDialog(context);
+    final result = await showCourseFormDialog(
+      context,
+      isNameTaken: (name) => provider.isNameTaken(name),
+    );
     if (result == null) return; // Cancelled.
     await provider.addCourse(
       name: result.name,
@@ -24,7 +27,11 @@ class CoursesScreen extends StatelessWidget {
 
   Future<void> _editCourse(BuildContext context, Course course) async {
     final provider = context.read<CoursesProvider>();
-    final result = await showCourseFormDialog(context, course: course);
+    final result = await showCourseFormDialog(
+      context,
+      course: course,
+      isNameTaken: (name) => provider.isNameTaken(name, excludeId: course.id),
+    );
     if (result == null) return;
     await provider.updateCourse(
       id: course.id,
@@ -39,7 +46,8 @@ class CoursesScreen extends StatelessWidget {
       context,
       title: 'Delete course?',
       message:
-          '"${course.name}" and all of its topics will be permanently deleted.',
+          '"${course.name}" and everything in it will be permanently deleted: '
+          'its topics, flashcards and quiz history.',
     );
     if (!confirmed) return;
     await provider.deleteCourse(course.id);
@@ -98,7 +106,11 @@ class CoursesScreen extends StatelessWidget {
             title: Text(course.name),
             subtitle: course.description == null
                 ? null
-                : Text(course.description!),
+                : Text(
+                    course.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
