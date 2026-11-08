@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/navigation/navigation_provider.dart';
 import '../../features/courses/courses_screen.dart';
-import '../../features/flashcards/flashcards_screen.dart';
+import '../../features/flashcards/flashcards_home_screen.dart';
 import '../../features/progress/progress_screen.dart';
 import '../../features/quiz/quiz_setup_screen.dart';
 
@@ -39,7 +39,7 @@ class AppShell extends StatelessWidget {
       case AppSection.courses:
         return const CoursesScreen();
       case AppSection.flashcards:
-        return const FlashcardsScreen();
+        return const FlashcardsHomeScreen();
       case AppSection.quiz:
         return const QuizSetupScreen();
       case AppSection.progress:
