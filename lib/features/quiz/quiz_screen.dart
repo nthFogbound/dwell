@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 import '../../data/repositories/quiz_repository.dart';
 import 'quiz_provider.dart';
@@ -97,56 +98,93 @@ class _QuestionView extends StatelessWidget {
     // Bar fills as questions are answered, not just as they are reached.
     final answeredCount = quiz.currentNumber - 1 + (quiz.isAnswered ? 1 : 0);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Question ${quiz.currentNumber} of ${quiz.totalQuestions}',
-          style: theme.textTheme.labelLarge,
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(value: answeredCount / quiz.totalQuestions),
-        const SizedBox(height: 24),
-        // Scrolls if a long question or answers don't fit a small window.
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+    const digitKeys = [
+      LogicalKeyboardKey.digit1,
+      LogicalKeyboardKey.digit2,
+      LogicalKeyboardKey.digit3,
+      LogicalKeyboardKey.digit4,
+    ];
+
+    return Focus(
+      autofocus: true,
+      child: CallbackShortcuts(
+        bindings: {
+          for (var i = 0;
+              i < question.options.length && i < digitKeys.length;
+              i++)
+            SingleActivator(digitKeys[i]): () {
+              if (!quiz.isAnswered) {
+                context.read<QuizProvider>().selectAnswer(i);
+              }
+            },
+          const SingleActivator(LogicalKeyboardKey.enter): () {
+            if (quiz.isAnswered) context.read<QuizProvider>().next();
+          },
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Question ${quiz.currentNumber} of ${quiz.totalQuestions}',
+              style: theme.textTheme.labelLarge,
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(value: answeredCount / quiz.totalQuestions),
+            const SizedBox(height: 24),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(question.prompt, style: theme.textTheme.headlineSmall),
+                    const SizedBox(height: 24),
+                    for (var i = 0; i < question.options.length; i++)
+                      _OptionTile(
+                        number: i + 1,
+                        text: question.options[i],
+                        state: stateFor(i),
+                        onTap: () =>
+                            context.read<QuizProvider>().selectAnswer(i),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                Text(question.prompt, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: 24),
-                for (var i = 0; i < question.options.length; i++)
-                  _OptionTile(
-                    text: question.options[i],
-                    state: stateFor(i),
-                    onTap: () => context.read<QuizProvider>().selectAnswer(i),
+                Text(
+                  'Press 1-${question.options.length} to answer  ·  '
+                  'Enter for next',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
+                ),
+                const Spacer(),
+                FilledButton(
+                  onPressed: quiz.isAnswered
+                      ? () => context.read<QuizProvider>().next()
+                      : null,
+                  child: Text(quiz.isLastQuestion ? 'Finish' : 'Next'),
+                ),
               ],
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerRight,
-          child: FilledButton(
-            onPressed: quiz.isAnswered
-                ? () => context.read<QuizProvider>().next()
-                : null,
-            child: Text(quiz.isLastQuestion ? 'Finish' : 'Next'),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
 class _OptionTile extends StatelessWidget {
   const _OptionTile({
+    required this.number,
     required this.text,
     required this.state,
     required this.onTap,
   });
-
+  
+  final int number;
   final String text;
   final _OptionState state;
   final VoidCallback onTap;
@@ -181,7 +219,7 @@ class _OptionTile extends StatelessWidget {
       color: background,
       clipBehavior: Clip.antiAlias, // keeps the click ripple inside the card
       child: ListTile(
-        title: Text(text, style: TextStyle(color: foreground)),
+        title: Text('$number.  $text', style: TextStyle(color: foreground)),
         // An icon, not just color, shows the result (helps color-blind users).
         trailing: icon == null ? null : Icon(icon, color: foreground),
         onTap: onTap,

@@ -149,6 +149,14 @@ class _CardView extends StatelessWidget {
                   ),
                 ],
               ),
+                      const SizedBox(height: 12),
+            Text(
+              'Space: show answer  ·  ←: missed  ·  →: got it',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),

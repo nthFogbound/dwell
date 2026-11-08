@@ -9,6 +9,7 @@ import '../flashcards/flashcards_screen.dart';
 
 import '../../shared/widgets/confirm_delete_dialog.dart';
 import '../../shared/widgets/status_views.dart';
+import '../../shared/widgets/content_width.dart';
 
 class CourseDetailScreen extends StatelessWidget {
   const CourseDetailScreen({super.key, required this.course});
@@ -58,8 +59,9 @@ class CourseDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(course.name)),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+      body: ContentWidth(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -86,7 +88,8 @@ class CourseDetailScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildBody(BuildContext context, TopicsProvider provider) {
