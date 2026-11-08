@@ -5,7 +5,7 @@ import '../../core/navigation/navigation_provider.dart';
 import '../../features/courses/courses_screen.dart';
 import '../../features/flashcards/flashcards_screen.dart';
 import '../../features/progress/progress_screen.dart';
-import '../../features/quiz/quiz_screen.dart';
+import '../../features/quiz/quiz_setup_screen.dart';
 
 /// The main layout: a navigation rail on the left, the active screen on the right.
 class AppShell extends StatelessWidget {
@@ -41,7 +41,7 @@ class AppShell extends StatelessWidget {
       case AppSection.flashcards:
         return const FlashcardsScreen();
       case AppSection.quiz:
-        return const QuizScreen();
+        return const QuizSetupScreen();
       case AppSection.progress:
         return const ProgressScreen();
     }

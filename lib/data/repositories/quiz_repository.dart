@@ -105,4 +105,8 @@ class QuizRepository {
           ),
         );
   }
+  
+  /// Topics in a course, for the quiz setup dropdown.
+  Future<List<Topic>> topicsForCourse(int courseId) =>
+      (_db.select(_db.topics)..where((t) => t.courseId.equals(courseId))).get();
 }

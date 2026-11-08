@@ -7,6 +7,7 @@ import 'data/database/app_database.dart';
 import 'data/repositories/course_repository.dart';
 import 'data/repositories/topic_repository.dart';
 import 'data/repositories/flashcard_repository.dart';
+import 'data/repositories/quiz_repository.dart';
 import 'features/courses/courses_provider.dart';
 
 void main() {
@@ -26,6 +27,9 @@ void main() {
         ),
         Provider<FlashcardRepository>(
           create: (context) => FlashcardRepository(context.read<AppDatabase>()),
+        ),
+        Provider<QuizRepository>(
+          create: (context) => QuizRepository(context.read<AppDatabase>()),
         ),
         ChangeNotifierProvider<CoursesProvider>(
           create: (context) =>
