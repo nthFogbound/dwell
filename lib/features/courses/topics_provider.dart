@@ -9,19 +9,21 @@ import '../../data/repositories/topic_repository.dart';
 /// a course detail page opens, and disposed when it closes.
 class TopicsProvider extends ChangeNotifier {
   TopicsProvider(this._repository, this.courseId) {
-    _subscription = _repository.watchTopics(courseId).listen(
-      (topics) {
-        _topics = topics;
-        _isLoading = false;
-        _error = null;
-        notifyListeners();
-      },
-      onError: (Object error) {
-        _error = error;
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+    _subscription = _repository
+        .watchTopics(courseId)
+        .listen(
+          (topics) {
+            _topics = topics;
+            _isLoading = false;
+            _error = null;
+            notifyListeners();
+          },
+          onError: (Object error) {
+            _error = error;
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
   }
 
   final TopicRepository _repository;

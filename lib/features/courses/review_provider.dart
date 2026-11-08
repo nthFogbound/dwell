@@ -30,7 +30,8 @@ class ReviewProvider extends ChangeNotifier {
   int get position => _index; // cards finished so far
   int get rememberedCount => _rememberedCount;
   int get missedCount => _missedCount;
-  bool get isComplete => !_isLoading && _queue.isNotEmpty && _index >= _queue.length;
+  bool get isComplete =>
+      !_isLoading && _queue.isNotEmpty && _index >= _queue.length;
   bool get hasNothingDue => !_isLoading && _queue.isEmpty;
   Flashcard? get currentCard =>
       (_isLoading || _index >= _queue.length) ? null : _queue[_index];

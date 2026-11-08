@@ -16,14 +16,15 @@ class TopicRepository {
   }
 
   Future<int> addTopic({required int courseId, required String name}) {
-    return _db.into(_db.topics).insert(
-          TopicsCompanion.insert(courseId: courseId, name: name.trim()),
-        );
+    return _db
+        .into(_db.topics)
+        .insert(TopicsCompanion.insert(courseId: courseId, name: name.trim()));
   }
 
   Future<int> updateTopic({required int id, required String name}) {
-    return (_db.update(_db.topics)..where((t) => t.id.equals(id)))
-        .write(TopicsCompanion(name: Value(name.trim())));
+    return (_db.update(_db.topics)..where((t) => t.id.equals(id))).write(
+      TopicsCompanion(name: Value(name.trim())),
+    );
   }
 
   Future<int> deleteTopic(int id) {

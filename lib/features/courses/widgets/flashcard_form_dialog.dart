@@ -50,10 +50,8 @@ class _FlashcardFormDialogState extends State<_FlashcardFormDialog> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop((
-      front: _front.text.trim(),
-      back: _back.text.trim(),
-    ));
+    Navigator.of(context)
+        .pop((front: _front.text.trim(), back: _back.text.trim()));
   }
 
   @override

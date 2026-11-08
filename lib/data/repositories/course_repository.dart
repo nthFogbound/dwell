@@ -10,13 +10,15 @@ class CourseRepository {
   /// Live list of courses, sorted by name. Emits a new list
   /// automatically whenever the courses table changes.
   Stream<List<Course>> watchCourses() {
-    return (_db.select(_db.courses)
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-        .watch();
+    return (_db.select(
+      _db.courses,
+    )..orderBy([(t) => OrderingTerm.asc(t.name)])).watch();
   }
 
   Future<int> addCourse({required String name, String? description}) {
-    return _db.into(_db.courses).insert(
+    return _db
+        .into(_db.courses)
+        .insert(
           CoursesCompanion.insert(
             name: name.trim(),
             description: Value(_clean(description)),

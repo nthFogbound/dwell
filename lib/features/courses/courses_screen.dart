@@ -59,35 +59,35 @@ class CoursesScreen extends StatelessWidget {
     await provider.deleteCourse(course.id);
   }
 
-@override
-Widget build(BuildContext context) {
-  final provider = context.watch<CoursesProvider>();
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<CoursesProvider>();
 
-  return Padding(
-    padding: const EdgeInsets.all(24),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Courses',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const Spacer(),
-            FilledButton.icon(
-              onPressed: () => _addCourse(context),
-              icon: const Icon(Icons.add),
-              label: const Text('New course'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Expanded(child: _buildBody(context, provider)),
-      ],
-    ),
-  );
-}
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Courses',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              const Spacer(),
+              FilledButton.icon(
+                onPressed: () => _addCourse(context),
+                icon: const Icon(Icons.add),
+                label: const Text('New course'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(child: _buildBody(context, provider)),
+        ],
+      ),
+    );
+  }
 
   Widget _buildBody(BuildContext context, CoursesProvider provider) {
     if (provider.isLoading) {
@@ -111,10 +111,11 @@ Widget build(BuildContext context) {
           margin: EdgeInsets.zero,
           child: ListTile(
             onTap: () =>
-            Navigator.of(context).push(CourseDetailScreen.route(course)),
+                Navigator.of(context).push(CourseDetailScreen.route(course)),
             title: Text(course.name),
-            subtitle:
-                course.description == null ? null : Text(course.description!),
+            subtitle: course.description == null
+                ? null
+                : Text(course.description!),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

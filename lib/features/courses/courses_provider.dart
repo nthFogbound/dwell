@@ -40,8 +40,7 @@ class CoursesProvider extends ChangeNotifier {
     required int id,
     required String name,
     String? description,
-  }) =>
-      _repository.updateCourse(id: id, name: name, description: description);
+  }) => _repository.updateCourse(id: id, name: name, description: description);
 
   Future<void> deleteCourse(int id) => _repository.deleteCourse(id);
 

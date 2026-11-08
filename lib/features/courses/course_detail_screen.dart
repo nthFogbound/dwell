@@ -124,7 +124,8 @@ class CourseDetailScreen extends StatelessWidget {
           margin: EdgeInsets.zero,
           child: ListTile(
             title: Text(topic.name),
-            onTap: () => Navigator.of(context).push(FlashcardsScreen.route(topic)),
+            onTap: () =>
+                Navigator.of(context).push(FlashcardsScreen.route(topic)),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -9,19 +9,21 @@ import '../../data/repositories/flashcard_repository.dart';
 /// a topic's flashcard screen opens, and disposed when it closes.
 class FlashcardsProvider extends ChangeNotifier {
   FlashcardsProvider(this._repository, this.topicId) {
-    _subscription = _repository.watchFlashcards(topicId).listen(
-      (flashcards) {
-        _flashcards = flashcards;
-        _isLoading = false;
-        _error = null;
-        notifyListeners();
-      },
-      onError: (Object error) {
-        _error = error;
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+    _subscription = _repository
+        .watchFlashcards(topicId)
+        .listen(
+          (flashcards) {
+            _flashcards = flashcards;
+            _isLoading = false;
+            _error = null;
+            notifyListeners();
+          },
+          onError: (Object error) {
+            _error = error;
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
   }
 
   final FlashcardRepository _repository;
@@ -43,8 +45,7 @@ class FlashcardsProvider extends ChangeNotifier {
     required int id,
     required String front,
     required String back,
-  }) =>
-      _repository.updateFlashcard(id: id, front: front, back: back);
+  }) => _repository.updateFlashcard(id: id, front: front, back: back);
 
   Future<void> deleteFlashcard(int id) => _repository.deleteFlashcard(id);
 

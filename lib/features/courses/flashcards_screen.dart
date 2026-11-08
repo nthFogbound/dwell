@@ -89,8 +89,9 @@ class FlashcardsScreen extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: provider.flashcards.isEmpty
                       ? null
-                      : () => Navigator.of(context)
-                          .push(ReviewScreen.route(topic)),
+                      : () =>
+                            Navigator.of(context)
+                                .push(ReviewScreen.route(topic)),
                   icon: const Icon(Icons.style_outlined),
                   label: const Text('Review'),
                 ),
@@ -131,8 +132,16 @@ class FlashcardsScreen extends StatelessWidget {
         return Card(
           margin: EdgeInsets.zero,
           child: ListTile(
-            title: Text(card.front, maxLines: 2, overflow: TextOverflow.ellipsis),
-            subtitle: Text(card.back, maxLines: 2, overflow: TextOverflow.ellipsis),
+            title: Text(
+              card.front,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              card.back,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

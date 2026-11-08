@@ -26,7 +26,9 @@ class FlashcardRepository {
     required String front,
     required String back,
   }) {
-    return _db.into(_db.flashcards).insert(
+    return _db
+        .into(_db.flashcards)
+        .insert(
           FlashcardsCompanion.insert(
             topicId: topicId,
             front: front.trim(),
@@ -41,10 +43,7 @@ class FlashcardRepository {
     required String back,
   }) {
     return (_db.update(_db.flashcards)..where((f) => f.id.equals(id))).write(
-      FlashcardsCompanion(
-        front: Value(front.trim()),
-        back: Value(back.trim()),
-      ),
+      FlashcardsCompanion(front: Value(front.trim()), back: Value(back.trim())),
     );
   }
 
@@ -56,9 +55,11 @@ class FlashcardRepository {
   /// A snapshot (not a live stream) keeps the review queue stable mid-session.
   Future<List<Flashcard>> getDueCards(int topicId) {
     return (_db.select(_db.flashcards)
-          ..where((f) =>
-              f.topicId.equals(topicId) &
-              f.dueAt.isSmallerOrEqualValue(DateTime.now()))
+          ..where(
+            (f) =>
+                f.topicId.equals(topicId) &
+                f.dueAt.isSmallerOrEqualValue(DateTime.now()),
+          )
           ..orderBy([(f) => OrderingTerm.asc(f.dueAt)]))
         .get();
   }
@@ -66,9 +67,9 @@ class FlashcardRepository {
   /// Applies a Leitner result: remembered moves up a box, missed returns to box 1.
   Future<void> recordReview({required int id, required bool remembered}) {
     return _db.transaction(() async {
-      final card = await (_db.select(_db.flashcards)
-            ..where((f) => f.id.equals(id)))
-          .getSingle();
+      final card = await (_db.select(
+        _db.flashcards,
+      )..where((f) => f.id.equals(id))).getSingle();
 
       final newBox = remembered ? min(card.box + 1, maxBox) : 1;
       final now = DateTime.now();

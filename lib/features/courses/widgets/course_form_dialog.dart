@@ -26,10 +26,10 @@ class _CourseFormDialog extends StatefulWidget {
 
 class _CourseFormDialogState extends State<_CourseFormDialog> {
   final _formKey = GlobalKey<FormState>();
-  late final _nameController =
-      TextEditingController(text: widget.course?.name);
-  late final _descriptionController =
-      TextEditingController(text: widget.course?.description);
+  late final _nameController = TextEditingController(text: widget.course?.name);
+  late final _descriptionController = TextEditingController(
+    text: widget.course?.description,
+  );
 
   @override
   void dispose() {

@@ -13,8 +13,9 @@ void main() {
     db = AppDatabase(NativeDatabase.memory());
     repo = FlashcardRepository(db);
 
-    final courseId =
-        await db.into(db.courses).insert(CoursesCompanion.insert(name: 'Course'));
+    final courseId = await db
+        .into(db.courses)
+        .insert(CoursesCompanion.insert(name: 'Course'));
     topicId = await db
         .into(db.topics)
         .insert(TopicsCompanion.insert(courseId: courseId, name: 'Topic'));
