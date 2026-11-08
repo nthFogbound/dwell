@@ -105,22 +105,23 @@ class _QuestionView extends StatelessWidget {
       LogicalKeyboardKey.digit4,
     ];
 
-    return Focus(
-      autofocus: true,
-      child: CallbackShortcuts(
-        bindings: {
-          for (var i = 0;
-              i < question.options.length && i < digitKeys.length;
-              i++)
-            SingleActivator(digitKeys[i]): () {
-              if (!quiz.isAnswered) {
-                context.read<QuizProvider>().selectAnswer(i);
-              }
-            },
-          const SingleActivator(LogicalKeyboardKey.enter): () {
-            if (quiz.isAnswered) context.read<QuizProvider>().next();
+    // CallbackShortcuts must be the PARENT of Focus (see review screen).
+    return CallbackShortcuts(
+      bindings: {
+        for (var i = 0;
+            i < question.options.length && i < digitKeys.length;
+            i++)
+          SingleActivator(digitKeys[i]): () {
+            if (!quiz.isAnswered) {
+              context.read<QuizProvider>().selectAnswer(i);
+            }
           },
+        const SingleActivator(LogicalKeyboardKey.enter): () {
+          if (quiz.isAnswered) context.read<QuizProvider>().next();
         },
+      },
+      child: Focus(
+        autofocus: true,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

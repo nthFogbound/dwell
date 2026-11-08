@@ -6,6 +6,7 @@ import '../../features/courses/courses_screen.dart';
 import '../../features/flashcards/flashcards_home_screen.dart';
 import '../../features/progress/progress_screen.dart';
 import '../../features/quiz/quiz_setup_screen.dart';
+import '../../shared/widgets/content_width.dart';
 
 /// The main layout: a navigation rail on the left, the active screen on the right.
 class AppShell extends StatelessWidget {
@@ -64,7 +65,7 @@ class AppShell extends StatelessWidget {
             destinations: _destinations,
           ),
           const VerticalDivider(width: 1),
-          Expanded(child: _screenFor(nav.current)),
+          Expanded(child: ContentWidth(child: _screenFor(nav.current))),
         ],
       ),
     );

@@ -70,17 +70,18 @@ class _CardView extends StatelessWidget {
     final theme = Theme.of(context);
 
     // Keyboard shortcuts for desktop: Space = show answer, Left = missed,
-    // Right = got it.
-    return Focus(
-      autofocus: true,
-      child: CallbackShortcuts(
-        bindings: {
-          const SingleActivator(LogicalKeyboardKey.space): provider.reveal,
-          const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
-              provider.answer(remembered: false),
-          const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
-              provider.answer(remembered: true),
-        },
+    // Right = got it. CallbackShortcuts must be the PARENT of Focus: key
+    // events start at the focused widget and bubble upward.
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.space): provider.reveal,
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
+            provider.answer(remembered: false),
+        const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
+            provider.answer(remembered: true),
+      },
+      child: Focus(
+        autofocus: true,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -149,7 +150,7 @@ class _CardView extends StatelessWidget {
                   ),
                 ],
               ),
-                      const SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               'Space: show answer  ·  ←: missed  ·  →: got it',
               textAlign: TextAlign.center,
