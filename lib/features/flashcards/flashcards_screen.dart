@@ -95,7 +95,7 @@ class FlashcardsScreen extends StatelessWidget {
                   icon: const Icon(Icons.style_outlined),
                   label: const Text('Review'),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () => _addFlashcard(context),
                   icon: const Icon(Icons.add),

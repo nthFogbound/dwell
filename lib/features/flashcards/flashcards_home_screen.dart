@@ -22,17 +22,19 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
   Widget build(BuildContext context) {
     final coursesProvider = context.watch<CoursesProvider>();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Flashcards')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: _buildContent(context, coursesProvider),
+    // Same page structure as CoursesScreen: padded column, heading, Expanded body.
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Flashcards',
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
-        ),
+          const SizedBox(height: 16),
+          Expanded(child: _buildContent(context, coursesProvider)),
+        ],
       ),
     );
   }
@@ -42,10 +44,12 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (coursesProvider.error != null) {
-      return const Text('Could not load courses.');
+      return const Center(child: Text('Could not load courses.'));
     }
     if (coursesProvider.courses.isEmpty) {
-      return const Text('Create a course and add topics to get started.');
+      return const Center(
+        child: Text('Create a course and add topics to get started.'),
+      );
     }
 
     final course = _course;
@@ -53,14 +57,9 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Choose a course, then a topic',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 16),
         DropdownMenu<Course>(
           label: const Text('Course'),
-          expandedInsets: EdgeInsets.zero,
+          expandedInsets: EdgeInsets.zero, // fill the available width
           dropdownMenuEntries: [
             for (final c in coursesProvider.courses)
               DropdownMenuEntry(value: c, label: c.name),
@@ -68,17 +67,20 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
           onSelected: (c) => setState(() => _course = c),
         ),
         const SizedBox(height: 16),
-        if (course != null)
-          Expanded(
-            // The key makes Provider build a NEW TopicsProvider when the
-            // course changes. Without it, the old course's topics would stay.
-            child: ChangeNotifierProvider(
-              key: ValueKey(course.id),
-              create: (context) =>
-                  TopicsProvider(context.read<TopicRepository>(), course.id),
-              child: const _TopicList(),
-            ),
-          ),
+        Expanded(
+          child: course == null
+              ? const Center(child: Text('Choose a course to see its topics.'))
+              // The key makes Provider build a NEW TopicsProvider when the
+              // course changes. Without it, the old course's topics would stay.
+              : ChangeNotifierProvider(
+                  key: ValueKey(course.id),
+                  create: (context) => TopicsProvider(
+                    context.read<TopicRepository>(),
+                    course.id,
+                  ),
+                  child: const _TopicList(),
+                ),
+        ),
       ],
     );
   }
@@ -98,8 +100,8 @@ class _TopicList extends StatelessWidget {
       return Center(child: Text('Something went wrong: ${provider.error}'));
     }
     if (provider.topics.isEmpty) {
-      return const Text(
-        'No topics in this course yet. Add one in the Courses tab.',
+      return const Center(
+        child: Text('No topics in this course yet. Add one in the Courses tab.'),
       );
     }
 

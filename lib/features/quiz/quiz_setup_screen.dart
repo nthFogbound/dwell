@@ -62,17 +62,17 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   Widget build(BuildContext context) {
     final coursesProvider = context.watch<CoursesProvider>();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Quiz')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: _buildContent(context, coursesProvider),
-          ),
-        ),
+    // Same page structure as CoursesScreen: padded column, heading, then
+    // an Expanded body. No Scaffold/AppBar, because AppShell provides the frame.
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Quiz', style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 16),
+          Expanded(child: _buildContent(context, coursesProvider)),
+        ],
       ),
     );
   }
@@ -82,66 +82,98 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (coursesProvider.error != null) {
-      return const Text('Could not load courses.');
+      return const Center(child: Text('Could not load courses.'));
     }
     if (coursesProvider.courses.isEmpty) {
-      return const Text('Create a course and add flashcards to start a quiz.');
+      return const Center(
+        child: Text('Create a course and add flashcards to start a quiz.'),
+      );
     }
 
     final theme = Theme.of(context);
     final canStart =
         _courseId != null && _cardCount >= QuizRepository.optionsPerQuestion;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Choose what to be quizzed on',
-          style: theme.textTheme.titleMedium,
-        ),
-        const SizedBox(height: 16),
-        DropdownMenu<int>(
-          label: const Text('Course'),
-          expandedInsets: EdgeInsets.zero, // fill the available width
-          dropdownMenuEntries: [
-            for (final course in coursesProvider.courses)
-              DropdownMenuEntry(value: course.id, label: course.name),
-          ],
-          onSelected: (id) {
-            if (id != null) _selectCourse(id);
-          },
-        ),
-        const SizedBox(height: 16),
-        DropdownMenu<int?>(
-          // New key when the course changes, so the old topic choice resets.
-          key: ValueKey(_courseId),
-          enabled: _courseId != null,
-          label: const Text('Topic (optional)'),
-          expandedInsets: EdgeInsets.zero,
-          initialSelection: null,
-          dropdownMenuEntries: [
-            const DropdownMenuEntry<int?>(value: null, label: 'All topics'),
-            for (final topic in _topics)
-              DropdownMenuEntry<int?>(value: topic.id, label: topic.name),
-          ],
-          onSelected: _selectTopic,
-        ),
-        const SizedBox(height: 16),
-        if (_courseId != null)
-          Text(
-            canStart
-                ? '$_cardCount flashcards available (up to 10 questions)'
-                : 'Need at least ${QuizRepository.optionsPerQuestion} '
-                      'flashcards to start a quiz ($_cardCount available)',
-            style: theme.textTheme.bodyMedium,
+    return SingleChildScrollView(
+      child: SizedBox(
+        width: double.infinity, // full width, like the Courses cards
+        child: Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Choose what to be quizzed on',
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: DropdownMenu<int>(
+                        label: const Text('Course'),
+                        expandedInsets: EdgeInsets.zero,
+                        dropdownMenuEntries: [
+                          for (final course in coursesProvider.courses)
+                            DropdownMenuEntry(
+                              value: course.id,
+                              label: course.name,
+                            ),
+                        ],
+                        onSelected: (id) {
+                          if (id != null) _selectCourse(id);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: DropdownMenu<int?>(
+                        // New key when the course changes, so the old topic
+                        // choice resets.
+                        key: ValueKey(_courseId),
+                        enabled: _courseId != null,
+                        label: const Text('Topic (optional)'),
+                        expandedInsets: EdgeInsets.zero,
+                        initialSelection: null,
+                        dropdownMenuEntries: [
+                          const DropdownMenuEntry<int?>(
+                            value: null,
+                            label: 'All topics',
+                          ),
+                          for (final topic in _topics)
+                            DropdownMenuEntry<int?>(
+                              value: topic.id,
+                              label: topic.name,
+                            ),
+                        ],
+                        onSelected: _selectTopic,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (_courseId != null)
+                  Text(
+                    canStart
+                        ? '$_cardCount flashcards available (up to 10 questions)'
+                        : 'Need at least ${QuizRepository.optionsPerQuestion} '
+                              'flashcards to start a quiz ($_cardCount available)',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: canStart ? _start : null,
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Start quiz'),
+                ),
+              ],
+            ),
           ),
-        const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: canStart ? _start : null,
-          icon: const Icon(Icons.play_arrow),
-          label: const Text('Start quiz'),
         ),
-      ],
+      ),
     );
   }
 }
