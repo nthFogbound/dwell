@@ -33,10 +33,7 @@ class QuizRepository {
     int? topicId,
   }) async {
     final query = _db.select(_db.flashcards).join([
-      innerJoin(
-        _db.topics,
-        _db.topics.id.equalsExp(_db.flashcards.topicId),
-      ),
+      innerJoin(_db.topics, _db.topics.id.equalsExp(_db.flashcards.topicId)),
     ]);
 
     // Combine into one condition so both filters apply together.
@@ -69,23 +66,26 @@ class QuizRepository {
       if (questions.length == questionCount) break;
 
       // Wrong options: other cards' backs, no duplicates, never the answer.
-      final distractors = cards
-          .map((c) => c.back)
-          .where((back) => back != card.back)
-          .toSet()
-          .toList()
-        ..shuffle(_random);
+      final distractors =
+          cards
+              .map((c) => c.back)
+              .where((back) => back != card.back)
+              .toSet()
+              .toList()
+            ..shuffle(_random);
       if (distractors.length < optionsPerQuestion - 1) continue;
 
       final options = [card.back, ...distractors.take(optionsPerQuestion - 1)]
         ..shuffle(_random);
 
-      questions.add(QuizQuestion(
-        flashcardId: card.id,
-        prompt: card.front,
-        options: options,
-        correctIndex: options.indexOf(card.back),
-      ));
+      questions.add(
+        QuizQuestion(
+          flashcardId: card.id,
+          prompt: card.front,
+          options: options,
+          correctIndex: options.indexOf(card.back),
+        ),
+      );
     }
     return questions;
   }
@@ -96,7 +96,9 @@ class QuizRepository {
     required int totalQuestions,
     required int correctAnswers,
   }) {
-    return _db.into(_db.quizAttempts).insert(
+    return _db
+        .into(_db.quizAttempts)
+        .insert(
           QuizAttemptsCompanion.insert(
             courseId: courseId,
             topicId: Value(topicId),
@@ -105,7 +107,7 @@ class QuizRepository {
           ),
         );
   }
-  
+
   /// Topics in a course, for the quiz setup dropdown.
   Future<List<Topic>> topicsForCourse(int courseId) =>
       (_db.select(_db.topics)..where((t) => t.courseId.equals(courseId))).get();

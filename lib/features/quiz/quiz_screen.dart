@@ -39,8 +39,9 @@ class _QuizView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: switch (quiz.status) {
-              QuizStatus.loading =>
-                const Center(child: CircularProgressIndicator()),
+              QuizStatus.loading => const Center(
+                child: CircularProgressIndicator(),
+              ),
               QuizStatus.notEnoughCards => const _NotEnoughCardsView(),
               QuizStatus.inProgress => const _QuestionView(),
               QuizStatus.finished => const _ResultView(),
@@ -154,7 +155,11 @@ class _OptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    final (Color background, Color foreground, IconData? icon) = switch (state) {
+    final (
+      Color background,
+      Color foreground,
+      IconData? icon,
+    ) = switch (state) {
       _OptionState.idle => (
         scheme.surfaceContainerHighest,
         scheme.onSurface,

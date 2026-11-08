@@ -42,8 +42,10 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     if (courseId == null) return;
     final repository = context.read<QuizRepository>();
     setState(() => _topicId = topicId);
-    final count =
-        await repository.countCards(courseId: courseId, topicId: topicId);
+    final count = await repository.countCards(
+      courseId: courseId,
+      topicId: topicId,
+    );
     if (!mounted || _topicId != topicId) return;
     setState(() => _cardCount = count);
   }
@@ -87,14 +89,16 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     }
 
     final theme = Theme.of(context);
-    final canStart = _courseId != null &&
-        _cardCount >= QuizRepository.optionsPerQuestion;
+    final canStart =
+        _courseId != null && _cardCount >= QuizRepository.optionsPerQuestion;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Choose what to be quizzed on',
-            style: theme.textTheme.titleMedium),
+        Text(
+          'Choose what to be quizzed on',
+          style: theme.textTheme.titleMedium,
+        ),
         const SizedBox(height: 16),
         DropdownMenu<int>(
           label: const Text('Course'),
@@ -128,7 +132,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
             canStart
                 ? '$_cardCount flashcards available (up to 10 questions)'
                 : 'Need at least ${QuizRepository.optionsPerQuestion} '
-                    'flashcards to start a quiz ($_cardCount available)',
+                      'flashcards to start a quiz ($_cardCount available)',
             style: theme.textTheme.bodyMedium,
           ),
         const SizedBox(height: 24),
