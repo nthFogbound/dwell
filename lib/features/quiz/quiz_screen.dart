@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../data/repositories/quiz_repository.dart';
 import 'quiz_provider.dart';
 
+import '../../shared/widgets/status_views.dart';
+
 class QuizScreen extends StatelessWidget {
   const QuizScreen({super.key, required this.courseId, this.topicId});
 
@@ -39,9 +41,7 @@ class _QuizView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: switch (quiz.status) {
-              QuizStatus.loading => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              QuizStatus.loading => const LoadingView(),
               QuizStatus.notEnoughCards => const _NotEnoughCardsView(),
               QuizStatus.inProgress => const _QuestionView(),
               QuizStatus.finished => const _ResultView(),

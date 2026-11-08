@@ -7,6 +7,9 @@ import 'topics_provider.dart';
 import 'widgets/topic_form_dialog.dart';
 import '../flashcards/flashcards_screen.dart';
 
+import '../../shared/widgets/confirm_delete_dialog.dart';
+import '../../shared/widgets/status_views.dart';
+
 class CourseDetailScreen extends StatelessWidget {
   const CourseDetailScreen({super.key, required this.course});
 
@@ -39,28 +42,12 @@ class CourseDetailScreen extends StatelessWidget {
 
   Future<void> _deleteTopic(BuildContext context, Topic topic) async {
     final provider = context.read<TopicsProvider>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete topic?'),
-        content: Text('"${topic.name}" will be permanently deleted.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDeleteDialog(
+      context,
+      title: 'Delete topic?',
+      message: '"${topic.name}" will be permanently deleted.',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await provider.deleteTopic(topic.id);
   }
 
@@ -103,15 +90,12 @@ class CourseDetailScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, TopicsProvider provider) {
-    if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (provider.error != null) {
-      return Center(child: Text('Something went wrong: ${provider.error}'));
-    }
+    if (provider.isLoading) return const LoadingView();
+    if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.topics.isEmpty) {
-      return const Center(
-        child: Text('No topics yet. Add one to organize this course.'),
+      return const EmptyState(
+        message: 'No topics yet. Add one to organize this course.',
+        icon: Icons.folder_open_outlined,
       );
     }
 

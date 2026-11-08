@@ -6,6 +6,9 @@ import 'courses_provider.dart';
 import 'widgets/course_form_dialog.dart';
 import 'course_detail_screen.dart';
 
+import '../../shared/widgets/confirm_delete_dialog.dart';
+import '../../shared/widgets/status_views.dart';
+
 class CoursesScreen extends StatelessWidget {
   const CoursesScreen({super.key});
 
@@ -32,30 +35,13 @@ class CoursesScreen extends StatelessWidget {
 
   Future<void> _deleteCourse(BuildContext context, Course course) async {
     final provider = context.read<CoursesProvider>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete course?'),
-        content: Text(
+    final confirmed = await showConfirmDeleteDialog(
+      context,
+      title: 'Delete course?',
+      message:
           '"${course.name}" and all of its topics will be permanently deleted.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await provider.deleteCourse(course.id);
   }
 
@@ -90,15 +76,12 @@ class CoursesScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, CoursesProvider provider) {
-    if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (provider.error != null) {
-      return Center(child: Text('Something went wrong: ${provider.error}'));
-    }
+    if (provider.isLoading) return const LoadingView();
+    if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.courses.isEmpty) {
-      return const Center(
-        child: Text('No courses yet. Create one to get started.'),
+      return const EmptyState(
+        message: 'No courses yet. Create one to get started.',
+        icon: Icons.school_outlined,
       );
     }
 

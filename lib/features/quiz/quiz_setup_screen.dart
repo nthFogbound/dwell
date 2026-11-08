@@ -6,6 +6,8 @@ import '../../data/repositories/quiz_repository.dart';
 import '../courses/courses_provider.dart';
 import 'quiz_screen.dart';
 
+import '../../shared/widgets/status_views.dart';
+
 class QuizSetupScreen extends StatefulWidget {
   const QuizSetupScreen({super.key});
 
@@ -78,15 +80,14 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   }
 
   Widget _buildContent(BuildContext context, CoursesProvider coursesProvider) {
-    if (coursesProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (coursesProvider.isLoading) return const LoadingView();
     if (coursesProvider.error != null) {
-      return const Center(child: Text('Could not load courses.'));
+      return ErrorView(error: coursesProvider.error!);
     }
     if (coursesProvider.courses.isEmpty) {
-      return const Center(
-        child: Text('Create a course and add flashcards to start a quiz.'),
+      return const EmptyState(
+        message: 'Create a course and add flashcards to start a quiz.',
+        icon: Icons.quiz_outlined,
       );
     }
 

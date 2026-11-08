@@ -6,6 +6,8 @@ import '../../data/database/app_database.dart';
 import '../../data/repositories/flashcard_repository.dart';
 import 'review_provider.dart';
 
+import '../../shared/widgets/status_views.dart';
+
 class ReviewScreen extends StatelessWidget {
   const ReviewScreen({super.key, required this.topic});
 
@@ -41,16 +43,12 @@ class ReviewScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, ReviewProvider provider) {
-    if (provider.isLoading) {
-      return const CircularProgressIndicator();
-    }
-    if (provider.error != null) {
-      return Text('Something went wrong: ${provider.error}');
-    }
+    if (provider.isLoading) return const LoadingView();
+    if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.hasNothingDue) {
-      return const _Message(
+      return const EmptyState(
+        message: 'Nothing due right now. Check back later.',
         icon: Icons.check_circle_outline,
-        text: 'Nothing due right now. Check back later.',
       );
     }
     if (provider.isComplete) {
@@ -188,25 +186,6 @@ class _Summary extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Done'),
         ),
-      ],
-    );
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 48, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(height: 16),
-        Text(text),
       ],
     );
   }

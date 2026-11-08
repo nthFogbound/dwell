@@ -7,6 +7,9 @@ import 'flashcards_provider.dart';
 import 'widgets/flashcard_form_dialog.dart';
 import 'review_screen.dart';
 
+import '../../shared/widgets/confirm_delete_dialog.dart';
+import '../../shared/widgets/status_views.dart';
+
 class FlashcardsScreen extends StatelessWidget {
   const FlashcardsScreen({super.key, required this.topic});
 
@@ -43,28 +46,12 @@ class FlashcardsScreen extends StatelessWidget {
 
   Future<void> _deleteFlashcard(BuildContext context, Flashcard card) async {
     final provider = context.read<FlashcardsProvider>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete flashcard?'),
-        content: const Text('This flashcard will be permanently deleted.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDeleteDialog(
+      context,
+      title: 'Delete flashcard?',
+      message: 'This flashcard will be permanently deleted.',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await provider.deleteFlashcard(card.id);
   }
 
@@ -112,15 +99,12 @@ class FlashcardsScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, FlashcardsProvider provider) {
-    if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (provider.error != null) {
-      return Center(child: Text('Something went wrong: ${provider.error}'));
-    }
+    if (provider.isLoading) return const LoadingView();
+    if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.flashcards.isEmpty) {
-      return const Center(
-        child: Text('No flashcards yet. Add one to start studying.'),
+      return const EmptyState(
+        message: 'No flashcards yet. Add one to start studying.',
+        icon: Icons.style_outlined,
       );
     }
 

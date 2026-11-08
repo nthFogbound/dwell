@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/repositories/progress_repository.dart';
+import '../../shared/widgets/status_views.dart';
 import 'progress_provider.dart';
 
 class ProgressScreen extends StatelessWidget {
@@ -11,49 +12,47 @@ class ProgressScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = context.watch<ProgressProvider>();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Progress')),
-      body: _buildBody(context, progress),
+    // Same page structure as the other tabs: padded column, heading, Expanded body.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Progress', style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 16),
+          Expanded(child: _buildBody(context, progress)),
+        ],
+      ),
     );
   }
 
   Widget _buildBody(BuildContext context, ProgressProvider progress) {
-    if (progress.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (progress.error != null) {
-      return const Center(child: Text('Could not load progress.'));
-    }
+    if (progress.isLoading) return const LoadingView();
+    if (progress.error != null) return ErrorView(error: progress.error!);
 
     final theme = Theme.of(context);
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            _SummaryCard(progress: progress),
-            const SizedBox(height: 32),
-            Text('Courses', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            if (progress.courseProgress.isEmpty)
-              const Text('No courses yet.')
-            else
-              for (final item in progress.courseProgress)
-                _CourseProgressCard(progress: item),
-            const SizedBox(height: 32),
-            Text('Recent quizzes', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            if (progress.history.isEmpty)
-              const Text('No quizzes taken yet.')
-            else
-              for (final entry in progress.history)
-                _QuizHistoryCard(entry: entry),
-          ],
-        ),
-      ),
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 24),
+      children: [
+        _SummaryCard(progress: progress),
+        const SizedBox(height: 32),
+        Text('Courses', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (progress.courseProgress.isEmpty)
+          const Text('No courses yet.')
+        else
+          for (final item in progress.courseProgress)
+            _CourseProgressCard(progress: item),
+        const SizedBox(height: 32),
+        Text('Recent quizzes', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 8),
+        if (progress.history.isEmpty)
+          const Text('No quizzes taken yet.')
+        else
+          for (final entry in progress.history)
+            _QuizHistoryCard(entry: entry),
+      ],
     );
   }
 }

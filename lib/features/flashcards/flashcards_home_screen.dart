@@ -7,6 +7,8 @@ import '../courses/courses_provider.dart';
 import 'flashcards_screen.dart';
 import '../courses/topics_provider.dart';
 
+import '../../shared/widgets/status_views.dart';
+
 /// The Flashcards tab: pick a course, then a topic, to open its flashcards.
 class FlashcardsHomeScreen extends StatefulWidget {
   const FlashcardsHomeScreen({super.key});
@@ -40,15 +42,14 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
   }
 
   Widget _buildContent(BuildContext context, CoursesProvider coursesProvider) {
-    if (coursesProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (coursesProvider.isLoading) return const LoadingView();
     if (coursesProvider.error != null) {
-      return const Center(child: Text('Could not load courses.'));
+      return ErrorView(error: coursesProvider.error!);
     }
     if (coursesProvider.courses.isEmpty) {
-      return const Center(
-        child: Text('Create a course and add topics to get started.'),
+      return const EmptyState(
+        message: 'Create a course and add topics to get started.',
+        icon: Icons.school_outlined,
       );
     }
 
@@ -69,9 +70,10 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
         const SizedBox(height: 16),
         Expanded(
           child: course == null
-              ? const Center(child: Text('Choose a course to see its topics.'))
-              // The key makes Provider build a NEW TopicsProvider when the
-              // course changes. Without it, the old course's topics would stay.
+              ? const EmptyState(
+                  message: 'Choose a course to see its topics.',
+                  icon: Icons.folder_open_outlined,
+              )
               : ChangeNotifierProvider(
                   key: ValueKey(course.id),
                   create: (context) => TopicsProvider(
@@ -92,16 +94,12 @@ class _TopicList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TopicsProvider>();
-
-    if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (provider.error != null) {
-      return Center(child: Text('Something went wrong: ${provider.error}'));
-    }
+    if (provider.isLoading) return const LoadingView();
+    if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.topics.isEmpty) {
-      return const Center(
-        child: Text('No topics in this course yet. Add one in the Courses tab.'),
+      return const EmptyState(
+        message: 'No topics in this course yet. Add one in the Courses tab.',
+        icon: Icons.folder_open_outlined,
       );
     }
 
