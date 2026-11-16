@@ -24,6 +24,7 @@ class Flashcards extends Table {
 
   TextColumn get front => text().withLength(min: 1, max: 1000)();
   TextColumn get back => text().withLength(min: 1, max: 2000)();
+  TextColumn get tags => text().withDefault(const Constant(''))();
 
   // Leitner box (1-5). New cards start in box 1.
   IntColumn get box => integer().withDefault(const Constant(1))();

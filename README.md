@@ -6,9 +6,11 @@ Dwell is a local-first study app for Windows. Your courses, flashcards and progr
 
 - **Organize:** create courses and group them into topics.
 - **Make flashcards:** add, edit and delete cards inside each topic.
-- **Review:** study due cards with spaced repetition. Cards you remember come back later, and missed cards return sooner.
+- **Review:** study due cards with spaced repetition using an animated, readable card view. Cards you remember come back later, and missed cards return sooner.
+- **Find cards:** search card questions, answers and tags, and filter by tag.
 - **Take quizzes:** multiple-choice quizzes built from your flashcards, for a whole course or a single topic.
 - **Track progress:** see how many cards you've mastered, per course and overall, plus your recent quiz scores.
+- **Personalize:** choose System, Light or Dark appearance, and English or Filipino (Tagalog) in Settings.
 
 ## Keyboard shortcuts
 

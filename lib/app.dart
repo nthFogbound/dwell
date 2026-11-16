@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/settings/settings_provider.dart';
 import 'shared/widgets/app_shell.dart';
 
 class DwellApp extends StatelessWidget {
@@ -8,13 +10,18 @@ class DwellApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dwell',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system, // Follows the OS light/dark setting.
-      home: const AppShell(),
+    return ChangeNotifierProvider(
+      create: (_) => SettingsProvider(),
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, _) => MaterialApp(
+          title: 'Dwell',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: settings.themeMode,
+          home: const AppShell(),
+        ),
+      ),
     );
   }
 }

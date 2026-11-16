@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
+import '../../../core/localization/app_strings.dart';
 import '../../../data/database/app_database.dart';
 
 /// What the dialog returns when the user presses Save.
@@ -14,8 +15,7 @@ Future<CourseFormResult?> showCourseFormDialog(
 }) {
   return showDialog<CourseFormResult>(
     context: context,
-    builder: (_) =>
-        _CourseFormDialog(course: course, isNameTaken: isNameTaken),
+    builder: (_) => _CourseFormDialog(course: course, isNameTaken: isNameTaken),
   );
 }
 
@@ -57,15 +57,16 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
     if (taken) {
       setState(() {
         _saving = false;
-        _nameError = 'A course with this name already exists';
+        _nameError = AppStrings.of(
+          context,
+          'A course with this name already exists',
+        );
       });
       return;
     }
 
-    Navigator.of(context).pop((
-      name: name,
-      description: _descriptionController.text,
-    ));
+    Navigator.of(context)
+        .pop((name: name, description: _descriptionController.text));
   }
 
   @override
@@ -73,7 +74,9 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
     final isEditing = widget.course != null;
 
     return AlertDialog(
-      title: Text(isEditing ? 'Edit course' : 'New course'),
+      title: Text(
+        AppStrings.of(context, isEditing ? 'Edit course' : 'New course'),
+      ),
       content: SizedBox(
         width: 400,
         child: Form(
@@ -86,7 +89,7 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
                 autofocus: true,
                 maxLength: 100,
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: AppStrings.of(context, 'Name'),
                   errorText: _nameError,
                 ),
                 onChanged: (_) {
@@ -94,7 +97,7 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
                 },
                 onFieldSubmitted: (_) => _submit(), // Enter key saves.
                 validator: (value) => (value == null || value.trim().isEmpty)
-                    ? 'Enter a course name'
+                    ? AppStrings.of(context, 'Enter a course name')
                     : null,
               ),
               const SizedBox(height: 8),
@@ -103,8 +106,8 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
                 minLines: 1,
                 maxLines: 3,
                 maxLength: 500,
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
+                decoration: InputDecoration(
+                  labelText: AppStrings.of(context, 'Description (optional)'),
                 ),
               ),
             ],
@@ -114,11 +117,11 @@ class _CourseFormDialogState extends State<_CourseFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppStrings.of(context, 'Cancel')),
         ),
         FilledButton(
           onPressed: _saving ? null : _submit,
-          child: const Text('Save'),
+          child: Text(AppStrings.of(context, 'Save')),
         ),
       ],
     );

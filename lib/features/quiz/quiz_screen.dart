@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../data/repositories/quiz_repository.dart';
 import 'quiz_provider.dart';
 
@@ -35,7 +36,7 @@ class _QuizView extends StatelessWidget {
     final quiz = context.watch<QuizProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Quiz')),
+      appBar: AppBar(title: Text(AppStrings.of(context, 'Quiz'))),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
@@ -62,15 +63,18 @@ class _NotEnoughCardsView extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          'There aren\'t enough flashcards with different answers to build '
-          'a quiz. Add more flashcards and try again.',
+        Text(
+          AppStrings.of(
+            context,
+            'There aren\'t enough flashcards with different answers to build '
+            'a quiz. Add more flashcards and try again.',
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Back'),
+          child: Text(AppStrings.of(context, 'Back')),
         ),
       ],
     );
@@ -108,9 +112,11 @@ class _QuestionView extends StatelessWidget {
     // CallbackShortcuts must be the PARENT of Focus (see review screen).
     return CallbackShortcuts(
       bindings: {
-        for (var i = 0;
-            i < question.options.length && i < digitKeys.length;
-            i++)
+        for (
+          var i = 0;
+          i < question.options.length && i < digitKeys.length;
+          i++
+        )
           SingleActivator(digitKeys[i]): () {
             if (!quiz.isAnswered) {
               context.read<QuizProvider>().selectAnswer(i);
@@ -126,7 +132,10 @@ class _QuestionView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Question ${quiz.currentNumber} of ${quiz.totalQuestions}',
+              AppStrings.of(
+                context,
+                'Question ${quiz.currentNumber} of ${quiz.totalQuestions}',
+              ),
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: 8),
@@ -155,8 +164,11 @@ class _QuestionView extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Press 1-${question.options.length} to answer  ·  '
-                  'Enter for next',
+                  AppStrings.of(
+                    context,
+                    'Press 1-${question.options.length} to answer  ·  '
+                    'Enter for next',
+                  ),
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -166,7 +178,12 @@ class _QuestionView extends StatelessWidget {
                   onPressed: quiz.isAnswered
                       ? () => context.read<QuizProvider>().next()
                       : null,
-                  child: Text(quiz.isLastQuestion ? 'Finish' : 'Next'),
+                  child: Text(
+                    AppStrings.of(
+                      context,
+                      quiz.isLastQuestion ? 'Finish' : 'Next',
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -184,7 +201,7 @@ class _OptionTile extends StatelessWidget {
     required this.state,
     required this.onTap,
   });
-  
+
   final int number;
   final String text;
   final _OptionState state;
@@ -241,20 +258,26 @@ class _ResultView extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Quiz complete', style: theme.textTheme.headlineSmall),
+        Text(
+          AppStrings.of(context, 'Quiz complete'),
+          style: theme.textTheme.headlineSmall,
+        ),
         const SizedBox(height: 16),
         Text(
           '${quiz.correctCount} / ${quiz.totalQuestions}',
           style: theme.textTheme.displayMedium,
         ),
-        Text('$percent% correct', style: theme.textTheme.titleMedium),
+        Text(
+          AppStrings.of(context, '$percent% correct'),
+          style: theme.textTheme.titleMedium,
+        ),
         const SizedBox(height: 32),
         Wrap(
           spacing: 12,
           children: [
             OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Done'),
+              child: Text(AppStrings.of(context, 'Done')),
             ),
             FilledButton(
               // Replace this screen with a new quiz: fresh questions.
@@ -266,7 +289,7 @@ class _ResultView extends StatelessWidget {
                   ),
                 ),
               ),
-              child: const Text('Try again'),
+              child: Text(AppStrings.of(context, 'Try again')),
             ),
           ],
         ),

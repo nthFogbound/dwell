@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/quiz_repository.dart';
 import '../courses/courses_provider.dart';
@@ -71,7 +72,10 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Quiz', style: Theme.of(context).textTheme.headlineMedium),
+          Text(
+            AppStrings.of(context, 'Quiz'),
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
           const SizedBox(height: 16),
           Expanded(child: _buildContent(context, coursesProvider)),
         ],
@@ -85,8 +89,11 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       return ErrorView(error: coursesProvider.error!);
     }
     if (coursesProvider.courses.isEmpty) {
-      return const EmptyState(
-        message: 'Create a course and add flashcards to start a quiz.',
+      return EmptyState(
+        message: AppStrings.of(
+          context,
+          'Create a course and add flashcards to start a quiz.',
+        ),
         icon: Icons.quiz_outlined,
       );
     }
@@ -106,7 +113,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Choose what to be quizzed on',
+                  AppStrings.of(context, 'Choose what to be quizzed on'),
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
@@ -115,7 +122,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                   children: [
                     Expanded(
                       child: DropdownMenu<int>(
-                        label: const Text('Course'),
+                        label: Text(AppStrings.of(context, 'Course')),
                         expandedInsets: EdgeInsets.zero,
                         dropdownMenuEntries: [
                           for (final course in coursesProvider.courses)
@@ -136,13 +143,13 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                         // choice resets.
                         key: ValueKey(_courseId),
                         enabled: _courseId != null,
-                        label: const Text('Topic (optional)'),
+                        label: Text(AppStrings.of(context, 'Topic (optional)')),
                         expandedInsets: EdgeInsets.zero,
                         initialSelection: null,
                         dropdownMenuEntries: [
-                          const DropdownMenuEntry<int?>(
+                          DropdownMenuEntry<int?>(
                             value: null,
-                            label: 'All topics',
+                            label: AppStrings.of(context, 'All topics'),
                           ),
                           for (final topic in _topics)
                             DropdownMenuEntry<int?>(
@@ -159,16 +166,22 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                 if (_courseId != null)
                   Text(
                     canStart
-                        ? '$_cardCount flashcards available (up to 10 questions)'
-                        : 'Need at least ${QuizRepository.optionsPerQuestion} '
-                              'flashcards to start a quiz ($_cardCount available)',
+                        ? AppStrings.of(
+                            context,
+                            '$_cardCount flashcards available (up to 10 questions)',
+                          )
+                        : AppStrings.of(
+                            context,
+                            'Need at least ${QuizRepository.optionsPerQuestion} '
+                            'flashcards to start a quiz ($_cardCount available)',
+                          ),
                     style: theme.textTheme.bodyMedium,
                   ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: canStart ? _start : null,
                   icon: const Icon(Icons.play_arrow),
-                  label: const Text('Start quiz'),
+                  label: Text(AppStrings.of(context, 'Start quiz')),
                 ),
               ],
             ),

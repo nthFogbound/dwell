@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
@@ -41,7 +41,8 @@ void main() {
           create: (context) => ProgressRepository(context.read<AppDatabase>()),
         ),
         ChangeNotifierProvider<ProgressProvider>(
-          create: (context) => ProgressProvider(context.read<ProgressRepository>()),
+          create: (context) =>
+              ProgressProvider(context.read<ProgressRepository>()),
         ),
       ],
       child: const DwellApp(),

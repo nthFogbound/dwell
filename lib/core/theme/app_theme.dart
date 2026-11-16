@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Central place for Dwell's look: navy primary, bright yellow accent.
 class AppTheme {
@@ -13,10 +13,7 @@ class AppTheme {
 
   static ColorScheme _scheme(Brightness brightness) {
     // fromSeed generates a full palette; we then pin the key roles.
-    final base = ColorScheme.fromSeed(
-      seedColor: _navy,
-      brightness: brightness,
-    );
+    final base = ColorScheme.fromSeed(seedColor: _navy, brightness: brightness);
 
     if (brightness == Brightness.light) {
       return base.copyWith(

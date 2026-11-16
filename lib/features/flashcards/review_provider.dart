@@ -77,6 +77,37 @@ class ReviewProvider extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
+  /// Starts another round using this session's original card snapshot.
+  void restart() {
+    if (_isLoading || _isSaving || _queue.isEmpty) return;
+    _index = 0;
+    _isRevealed = false;
+    _rememberedCount = 0;
+    _missedCount = 0;
+    _error = null;
+    notifyListeners();
+  }
+
+  Future<void> reviewAllCards() async {
+    if (_isLoading || _isSaving || _queue.isNotEmpty) return;
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _queue = await _repository.getAllCards(topicId);
+      _index = 0;
+      _isRevealed = false;
+      _rememberedCount = 0;
+      _missedCount = 0;
+    } catch (e) {
+      _error = e;
+    } finally {
+      _isLoading = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     _disposed = true; // the async work above may finish after the screen closes

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
+import '../../../core/localization/app_strings.dart';
 import '../../../data/database/app_database.dart';
 
 /// Returns the entered name, or null if cancelled.
@@ -50,7 +51,10 @@ class _TopicFormDialogState extends State<_TopicFormDialog> {
     if (taken) {
       setState(() {
         _saving = false;
-        _nameError = 'This course already has a topic with this name';
+        _nameError = AppStrings.of(
+          context,
+          'This course already has a topic with this name',
+        );
       });
       return;
     }
@@ -61,7 +65,12 @@ class _TopicFormDialogState extends State<_TopicFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.topic == null ? 'New topic' : 'Edit topic'),
+      title: Text(
+        AppStrings.of(
+          context,
+          widget.topic == null ? 'New topic' : 'Edit topic',
+        ),
+      ),
       content: SizedBox(
         width: 400,
         child: Form(
@@ -71,7 +80,7 @@ class _TopicFormDialogState extends State<_TopicFormDialog> {
             autofocus: true,
             maxLength: 100,
             decoration: InputDecoration(
-              labelText: 'Name',
+              labelText: AppStrings.of(context, 'Name'),
               errorText: _nameError,
             ),
             onChanged: (_) {
@@ -79,7 +88,7 @@ class _TopicFormDialogState extends State<_TopicFormDialog> {
             },
             onFieldSubmitted: (_) => _submit(), // Enter key saves.
             validator: (value) => (value == null || value.trim().isEmpty)
-                ? 'Enter a topic name'
+                ? AppStrings.of(context, 'Enter a topic name')
                 : null,
           ),
         ),
@@ -87,11 +96,11 @@ class _TopicFormDialogState extends State<_TopicFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppStrings.of(context, 'Cancel')),
         ),
         FilledButton(
           onPressed: _saving ? null : _submit,
-          child: const Text('Save'),
+          child: Text(AppStrings.of(context, 'Save')),
         ),
       ],
     );

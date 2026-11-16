@@ -13,6 +13,24 @@ class FlashcardRepository {
   static const _boxIntervalDays = [1, 2, 4, 7, 14];
   static int get maxBox => _boxIntervalDays.length;
 
+  static List<String> parseTags(String? tagText) {
+    final text = tagText ?? '';
+    if (text.trim().isEmpty) return const [];
+    final tags = text
+        .split(',')
+        .map((tag) => tag.trim())
+        .where((tag) => tag.isNotEmpty)
+        .toSet()
+        .toList();
+    tags.sort();
+    return tags;
+  }
+
+  static String normalizeTags(String? tagText) {
+    final tags = parseTags(tagText);
+    return tags.join(', ');
+  }
+
   /// Live list of one topic's flashcards, oldest first.
   Stream<List<Flashcard>> watchFlashcards(int topicId) {
     return (_db.select(_db.flashcards)
@@ -25,6 +43,7 @@ class FlashcardRepository {
     required int topicId,
     required String front,
     required String back,
+    String? tags,
   }) {
     return _db
         .into(_db.flashcards)
@@ -33,6 +52,7 @@ class FlashcardRepository {
             topicId: topicId,
             front: front.trim(),
             back: back.trim(),
+            tags: Value(normalizeTags(tags)),
           ),
         );
   }
@@ -41,9 +61,14 @@ class FlashcardRepository {
     required int id,
     required String front,
     required String back,
+    String? tags,
   }) {
     return (_db.update(_db.flashcards)..where((f) => f.id.equals(id))).write(
-      FlashcardsCompanion(front: Value(front.trim()), back: Value(back.trim())),
+      FlashcardsCompanion(
+        front: Value(front.trim()),
+        back: Value(back.trim()),
+        tags: Value(normalizeTags(tags)),
+      ),
     );
   }
 
@@ -61,6 +86,14 @@ class FlashcardRepository {
                 f.dueAt.isSmallerOrEqualValue(DateTime.now()),
           )
           ..orderBy([(f) => OrderingTerm.asc(f.dueAt)]))
+        .get();
+  }
+
+  /// Snapshot of every card in one topic, oldest first.
+  Future<List<Flashcard>> getAllCards(int topicId) {
+    return (_db.select(_db.flashcards)
+          ..where((f) => f.topicId.equals(topicId))
+          ..orderBy([(f) => OrderingTerm.asc(f.createdAt)]))
         .get();
   }
 
