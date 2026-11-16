@@ -29,6 +29,13 @@ class AppStrings {
     'This flashcard will be permanently deleted.':
         'Permanenteng mabubura ang flashcard na ito.',
     'New flashcard': 'Bagong flashcard',
+    'Quick add': 'Mabilisang pagdagdag',
+    'Course / topic': 'Kurso / paksa',
+    'Save & Add Another': 'I-save at magdagdag pa',
+    'Save & Close': 'I-save at isara',
+    'Topics could not be loaded:': 'Hindi mabuksan ang mga paksa:',
+    'Card saved, but the last-used topic could not be saved:':
+        'Na-save ang card ngunit hindi na-save ang huling paksang ginamit:',
     'Edit flashcard': 'I-edit ang flashcard',
     'Front (question)': 'Harap (tanong)',
     'Back (answer)': 'Likod (sagot)',
@@ -62,6 +69,21 @@ class AppStrings {
         'Walang kailangang aralin ngayon. Bumalik mamaya.',
     'Review all cards': 'Aralin ang lahat ng card',
     'Session complete': 'Tapos na ang sesyon',
+    'Cards reviewed': 'Mga card na inaral',
+    'Unique cards reviewed': 'Natatanging mga card na inaral',
+    'Total attempts': 'Kabuuang pagsubok',
+    'Accuracy': 'Katumpakan',
+    'Time spent': 'Oras na ginugol',
+    'Missed cards': 'Mga hindi naalala',
+    'Study Again': 'Mag-aral muli',
+    'Undo': 'I-undo',
+    'Undo last response': 'I-undo ang huling sagot',
+    'Response undone': 'Na-undo ang sagot',
+    'Reviewing again': 'Inaaral muli',
+    'Repeat missed cards': 'Ulitin ang mga hindi naalala',
+    'Immediately': 'Agad',
+    'After 2 cards': 'Pagkalipas ng 2 card',
+    'After 5 cards': 'Pagkalipas ng 5 card',
     'Restart': 'Ulitin',
     'Done': 'Tapos',
     'Appearance': 'Hitsura',
@@ -133,6 +155,11 @@ class AppStrings {
     final cardProgress = RegExp(r'^Card (\d+) of (\d+)$').firstMatch(english);
     if (cardProgress != null) {
       return 'Card ${cardProgress[1]} sa ${cardProgress[2]}';
+    }
+    final motivational = RegExp(r'^Nice work — (\d+)% accuracy!$')
+        .firstMatch(english);
+    if (motivational != null) {
+      return 'Magaling — ${motivational[1]}% ang katumpakan!';
     }
     final reviewSummary = RegExp(r'^(\d+) remembered · (\d+) missed$')
         .firstMatch(english);

@@ -47,29 +47,51 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Future<void> _exportBackup() async {
     final db = context.read<AppDatabase>();
-    final filePath = await _BackupService(db).exportData();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${AppStrings.of(context, 'Backup exported to')} $filePath',
+    try {
+      final filePath = await _BackupService(db).exportData();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${AppStrings.of(context, 'Backup exported to')} $filePath',
+          ),
         ),
-      ),
-    );
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${AppStrings.of(context, 'Something went wrong:')} $error',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _restoreLatestBackup() async {
     final db = context.read<AppDatabase>();
-    final restored = await _BackupService(db).restoreLatest();
-    if (!mounted) return;
-    final message = restored
-        ? AppStrings.of(context, 'Latest backup restored.')
-        : AppStrings.of(
-            context,
-            'No backup file was found in your Documents folder.',
-          );
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    try {
+      final restored = await _BackupService(db).restoreLatest();
+      if (!mounted) return;
+      final message = restored
+          ? AppStrings.of(context, 'Latest backup restored.')
+          : AppStrings.of(
+              context,
+              'No backup file was found in your Documents folder.',
+            );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${AppStrings.of(context, 'Something went wrong:')} $error',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -450,21 +472,26 @@ class _BackupService {
 
   final AppDatabase _db;
 
+  Future<Directory> _backupDirectory() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    final dir = Directory('${docsDir.path}${Platform.pathSeparator}dwell_backups');
+    await dir.create(recursive: true);
+    return dir;
+  }
+
   Future<String> exportData() async {
     final courses = await _db.select(_db.courses).get();
     final topics = await _db.select(_db.topics).get();
     final flashcards = await _db.select(_db.flashcards).get();
     final attempts = await _db.select(_db.quizAttempts).get();
 
-    final dir = await getApplicationDocumentsDirectory();
-    final stamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-    final file = File(
-      '${dir.path}${Platform.pathSeparator}dwell_backup_$stamp.json',
-    );
+    final dir = await _backupDirectory();
+    final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
+    final file = File('${dir.path}${Platform.pathSeparator}dwell_backup_$stamp.json');
     await file.writeAsString(
       jsonEncode({
         'version': 1,
-        'exportedAt': DateTime.now().toIso8601String(),
+        'exportedAt': DateTime.now().toUtc().toIso8601String(),
         'courses': courses
             .map(
               (course) => {
@@ -518,17 +545,34 @@ class _BackupService {
   }
 
   Future<bool> restoreLatest() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final candidates = dir
-        .listSync()
-        .whereType<File>()
-        .where((file) => file.path.contains('dwell_backup_'))
-        .toList();
+    final rootDir = await getApplicationDocumentsDirectory();
+    final backupDir = await _backupDirectory();
+    final directories = [rootDir, backupDir];
+    final candidates = <File>[];
+
+    for (final directory in directories) {
+      if (!directory.existsSync()) continue;
+      candidates.addAll(
+        directory
+            .listSync()
+            .whereType<File>()
+            .where((file) => file.path.contains('dwell_backup_'))
+            .toList(),
+      );
+    }
+
     if (candidates.isEmpty) return false;
-    candidates.sort((a, b) => b.path.compareTo(a.path));
+
+    candidates.sort(
+      (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+    );
     final newest = candidates.first;
     final payload = jsonDecode(await newest.readAsString());
-    final data = payload as Map<String, dynamic>;
+    if (payload is! Map<String, dynamic>) {
+      throw const FormatException('Backup file is not valid JSON data.');
+    }
+
+    final data = payload;
 
     await _db.transaction(() async {
       await (_db.delete(_db.quizAttempts)).go();

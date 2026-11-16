@@ -97,8 +97,8 @@ class FlashcardRepository {
         .get();
   }
 
-  /// Applies a Leitner result: remembered moves up a box, missed returns to box 1.
-  Future<void> recordReview({required int id, required bool remembered}) {
+  /// Applies a Leitner result and returns the scheduling state before the write.
+  Future<Flashcard> recordReview({required int id, required bool remembered}) {
     return _db.transaction(() async {
       final card = await (_db.select(
         _db.flashcards,
@@ -114,6 +114,20 @@ class FlashcardRepository {
           lastReviewedAt: Value(now),
         ),
       );
+      return card;
     });
+  }
+
+  /// Restores only the review scheduling fields changed by [recordReview].
+  Future<void> restoreReviewState(Flashcard card) {
+    return (_db.update(
+      _db.flashcards,
+    )..where((f) => f.id.equals(card.id))).write(
+      FlashcardsCompanion(
+        box: Value(card.box),
+        dueAt: Value(card.dueAt),
+        lastReviewedAt: Value(card.lastReviewedAt),
+      ),
+    );
   }
 }

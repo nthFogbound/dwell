@@ -41,6 +41,16 @@ class _SettingsDialogState extends State<_SettingsDialog> {
     }
   }
 
+  Future<void> _updateRepeatGap(MissedCardRepeatGap? gap) async {
+    if (gap == null) return;
+    try {
+      await context.read<SettingsProvider>().setMissedCardRepeatGap(gap);
+      if (mounted) setState(() => _saveError = null);
+    } catch (error) {
+      if (mounted) setState(() => _saveError = error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
@@ -93,6 +103,28 @@ class _SettingsDialogState extends State<_SettingsDialog> {
                 ),
               ],
               onChanged: _updateLanguage,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<MissedCardRepeatGap>(
+              initialValue: settings.missedCardRepeatGap,
+              decoration: InputDecoration(
+                labelText: strings('Repeat missed cards'),
+              ),
+              items: [
+                DropdownMenuItem(
+                  value: MissedCardRepeatGap.immediately,
+                  child: Text(strings('Immediately')),
+                ),
+                DropdownMenuItem(
+                  value: MissedCardRepeatGap.afterTwoCards,
+                  child: Text(strings('After 2 cards')),
+                ),
+                DropdownMenuItem(
+                  value: MissedCardRepeatGap.afterFiveCards,
+                  child: Text(strings('After 5 cards')),
+                ),
+              ],
+              onChanged: _updateRepeatGap,
             ),
             if (settings.loadError != null || _saveError != null) ...[
               const SizedBox(height: 12),

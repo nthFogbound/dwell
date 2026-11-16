@@ -3,6 +3,13 @@ import 'package:drift/drift.dart';
 import '../database/app_database.dart';
 import 'duplicate_name_exception.dart';
 
+class TopicWithCourse {
+  const TopicWithCourse({required this.topic, required this.courseName});
+
+  final Topic topic;
+  final String courseName;
+}
+
 class TopicRepository {
   TopicRepository(this._db);
 
@@ -14,6 +21,26 @@ class TopicRepository {
           ..where((t) => t.courseId.equals(courseId))
           ..orderBy([(t) => OrderingTerm.asc(t.name)]))
         .watch();
+  }
+
+  Future<List<TopicWithCourse>> getTopicsWithCourses() async {
+    final query =
+        _db.select(_db.topics).join([
+          innerJoin(_db.courses, _db.courses.id.equalsExp(_db.topics.courseId)),
+        ])..orderBy([
+          OrderingTerm.asc(_db.courses.name),
+          OrderingTerm.asc(_db.topics.name),
+        ]);
+
+    final rows = await query.get();
+    return rows
+        .map(
+          (row) => TopicWithCourse(
+            topic: row.readTable(_db.topics),
+            courseName: row.readTable(_db.courses).name,
+          ),
+        )
+        .toList();
   }
 
   /// True if another topic in the same course already uses this name

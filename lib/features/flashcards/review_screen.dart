@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/localization/app_strings.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/flashcard_repository.dart';
 import 'review_provider.dart';
@@ -18,8 +21,11 @@ class ReviewScreen extends StatelessWidget {
   static Route<void> route(Topic topic) {
     return MaterialPageRoute<void>(
       builder: (context) => ChangeNotifierProvider(
-        create: (context) =>
-            ReviewProvider(context.read<FlashcardRepository>(), topic.id),
+        create: (context) => ReviewProvider(
+          context.read<FlashcardRepository>(),
+          topic.id,
+          repeatGap: context.read<SettingsProvider>().missedCardRepeatGap,
+        ),
         child: ReviewScreen(topic: topic),
       ),
     );
@@ -29,18 +35,37 @@ class ReviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<ReviewProvider>();
 
-    return Scaffold(
-      appBar: AppBar(title: Text(topic.name)),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
+    return PopScope<void>(
+      canPop: provider.isEnded,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !provider.isEnded) provider.endSession();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(topic.name),
+          leading: IconButton(
+            tooltip: AppStrings.of(context, 'Back'),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (provider.isEnded) {
+                Navigator.of(context).pop();
+              } else {
+                provider.endSession();
+              }
+            },
+          ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: _buildBody(context, provider),
+        body: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: _buildBody(context, provider),
+              ),
             ),
           ),
         ),
@@ -51,11 +76,11 @@ class ReviewScreen extends StatelessWidget {
   Widget _buildBody(BuildContext context, ReviewProvider provider) {
     if (provider.isLoading) return const LoadingView();
     if (provider.error != null) return ErrorView(error: provider.error!);
-    if (provider.hasNothingDue) {
-      return _NothingDueState(provider: provider);
-    }
     if (provider.isComplete) {
       return _Summary(provider: provider);
+    }
+    if (provider.hasNothingDue) {
+      return _NothingDueState(provider: provider);
     }
     return _CardView(provider: provider);
   }
@@ -108,22 +133,107 @@ class _CardView extends StatelessWidget {
     final card = provider.currentCard!;
     final revealed = provider.isRevealed;
     final theme = Theme.of(context);
+    final progress = provider.total == 0
+        ? 0.0
+        : (provider.position / provider.total).clamp(0.0, 1.0);
 
-    // Keyboard shortcuts for desktop: Space = show answer, Left = missed,
-    // Right = got it. CallbackShortcuts must be the PARENT of Focus: key
-    // events start at the focused widget and bubble upward.
+    // Keyboard shortcuts for desktop: Enter/Space = reveal, 1/2 = missed/got it,
+    // Left/Right = missed/got it. CallbackShortcuts must be the PARENT of Focus:
+    // key events start at the focused widget and bubble upward.
     return CallbackShortcuts(
       bindings: {
+        const SingleActivator(LogicalKeyboardKey.enter): provider.reveal,
         const SingleActivator(LogicalKeyboardKey.space): provider.reveal,
+        const SingleActivator(LogicalKeyboardKey.digit1): () {
+          if (!revealed) {
+            provider.reveal();
+            return;
+          }
+          provider.answer(remembered: false);
+        },
+        const SingleActivator(LogicalKeyboardKey.numpad1): () {
+          if (!revealed) {
+            provider.reveal();
+            return;
+          }
+          provider.answer(remembered: false);
+        },
+        const SingleActivator(LogicalKeyboardKey.digit2): () {
+          if (!revealed) {
+            provider.reveal();
+            return;
+          }
+          provider.answer(remembered: true);
+        },
+        const SingleActivator(LogicalKeyboardKey.numpad2): () {
+          if (!revealed) {
+            provider.reveal();
+            return;
+          }
+          provider.answer(remembered: true);
+        },
         const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
             provider.answer(remembered: false),
         const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
             provider.answer(remembered: true),
+        const SingleActivator(LogicalKeyboardKey.keyZ, control: true): () {
+          unawaited(_undoResponse(context));
+        },
+        const SingleActivator(LogicalKeyboardKey.escape): provider.endSession,
       },
       child: Focus(
         autofocus: true,
         child: Column(
           children: [
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 440,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        AppStrings.of(context, 'Cards reviewed'),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        '${provider.position}/${provider.total}',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: TextButton.icon(
+                      onPressed: provider.canUndo
+                          ? () => _undoResponse(context)
+                          : null,
+                      icon: const Icon(Icons.undo),
+                      label: Text(AppStrings.of(context, 'Undo')),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 10,
+                      backgroundColor: theme.colorScheme.surfaceContainerLow,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
             Expanded(
               child: Center(
                 child: ConstrainedBox(
@@ -144,12 +254,6 @@ class _CardView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                '${provider.position + 1}/${provider.total}',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
                               Expanded(
                                 child: Center(
                                   child: SingleChildScrollView(
@@ -191,6 +295,28 @@ class _CardView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
+            if (provider.currentCardIsRepeat) ...[
+              const SizedBox(height: 4),
+              Text(
+                AppStrings.of(context, 'Reviewing again'),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '1 = ${AppStrings.of(context, 'Missed')}   2 = ${AppStrings.of(context, 'Got it')}',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -219,6 +345,14 @@ class _CardView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _undoResponse(BuildContext context) async {
+    final undone = await provider.undoLastResponse();
+    if (!undone || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppStrings.of(context, 'Response undone'))),
     );
   }
 }
@@ -262,39 +396,110 @@ class _Summary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.celebration_outlined,
-          size: 48,
-          color: Theme.of(context).colorScheme.primary,
+    final accuracyPercent = (provider.accuracy * 100).round();
+    final elapsed = provider.elapsed;
+    final elapsedText = elapsed.inHours > 0
+        ? '${elapsed.inHours}:${(elapsed.inMinutes % 60).toString().padLeft(2, '0')}:${(elapsed.inSeconds % 60).toString().padLeft(2, '0')}'
+        : '${elapsed.inMinutes}:${(elapsed.inSeconds % 60).toString().padLeft(2, '0')}';
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyR): provider.restart,
+        const SingleActivator(LogicalKeyboardKey.keyD): () =>
+            Navigator.of(context).popUntil((route) => route.isFirst),
+        const SingleActivator(LogicalKeyboardKey.keyZ, control: true): () {
+          unawaited(_undoFromSummary(context));
+        },
+      },
+      child: Focus(
+        autofocus: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.celebration_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppStrings.of(context, 'Session complete'),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppStrings.of(context, 'Nice work — $accuracyPercent% accuracy!'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            _SummaryStat(
+              label: AppStrings.of(context, 'Unique cards reviewed'),
+              value: '${provider.reviewedCount}',
+            ),
+            _SummaryStat(
+              label: AppStrings.of(context, 'Total attempts'),
+              value: '${provider.attempts}',
+            ),
+            _SummaryStat(
+              label: AppStrings.of(context, 'Accuracy'),
+              value: '$accuracyPercent%',
+            ),
+            _SummaryStat(
+              label: AppStrings.of(context, 'Time spent'),
+              value: elapsedText,
+            ),
+            _SummaryStat(
+              label: AppStrings.of(context, 'Missed cards'),
+              value: '${provider.missedCardsCount}',
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: provider.restart,
+              icon: const Icon(Icons.restart_alt),
+              label: Text(AppStrings.of(context, 'Study Again')),
+              style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
+            ),
+            const SizedBox(height: 4),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).popUntil((route) => route.isFirst),
+              child: Text(AppStrings.of(context, 'Done')),
+            ),
+            if (provider.canUndo)
+              TextButton.icon(
+                onPressed: () => _undoFromSummary(context),
+                icon: const Icon(Icons.undo),
+                label: Text(AppStrings.of(context, 'Undo last response')),
+              ),
+          ],
         ),
-        const SizedBox(height: 16),
-        Text(
-          AppStrings.of(context, 'Session complete'),
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          AppStrings.of(
-            context,
-            '${provider.rememberedCount} remembered · ${provider.missedCount} missed',
-          ),
-        ),
-        const SizedBox(height: 24),
-        OutlinedButton.icon(
-          onPressed: provider.restart,
-          icon: const Icon(Icons.restart_alt),
-          label: Text(AppStrings.of(context, 'Restart')),
-          style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
-        ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(AppStrings.of(context, 'Done')),
-        ),
-      ],
+      ),
     );
   }
+
+  Future<void> _undoFromSummary(BuildContext context) async {
+    final undone = await provider.undoLastResponse();
+    if (!undone || !context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppStrings.of(context, 'Response undone'))),
+    );
+  }
+}
+
+class _SummaryStat extends StatelessWidget {
+  const _SummaryStat({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('$label: '),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+      ],
+    ),
+  );
 }
