@@ -53,12 +53,13 @@ class FlashcardsScreen extends StatelessWidget {
 
   Future<void> _deleteFlashcard(BuildContext context, Flashcard card) async {
     final provider = context.read<FlashcardsProvider>();
+    final language = context.read<SettingsProvider>().language;
     final confirmed = await showConfirmDeleteDialog(
       context,
-      title: AppStrings.of(context, 'Delete flashcard?'),
-      message: AppStrings.of(
-        context,
+      title: AppStrings.text('Delete flashcard?', language),
+      message: AppStrings.text(
         'This flashcard will be permanently deleted.',
+        language,
       ),
     );
     if (!confirmed) return;
@@ -157,7 +158,7 @@ class FlashcardsScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   width: 40,

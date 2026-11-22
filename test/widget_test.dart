@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:dwell/app.dart';
 import 'package:dwell/core/navigation/navigation_provider.dart';
@@ -14,14 +15,13 @@ import 'package:dwell/features/progress/progress_provider.dart';
 
 void main() {
   testWidgets('selecting a destination changes the section', (tester) async {
+    final db = AppDatabase(NativeDatabase.memory());
+
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => NavigationProvider()),
-          Provider<AppDatabase>(
-            create: (_) => AppDatabase(NativeDatabase.memory()),
-            dispose: (_, db) => db.close(),
-          ),
+          Provider<AppDatabase>.value(value: db),
           Provider<CourseRepository>(
             create: (context) => CourseRepository(context.read<AppDatabase>()),
           ),
@@ -54,5 +54,9 @@ void main() {
 
     final context = tester.element(find.byType(DwellApp));
     expect(context.read<NavigationProvider>().current, AppSection.quiz);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(milliseconds: 1));
+    await db.close();
   });
 }

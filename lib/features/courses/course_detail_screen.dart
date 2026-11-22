@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/localization/app_strings.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/topic_repository.dart';
 import 'topics_provider.dart';
@@ -51,14 +52,15 @@ class CourseDetailScreen extends StatelessWidget {
 
   Future<void> _deleteTopic(BuildContext context, Topic topic) async {
     final provider = context.read<TopicsProvider>();
+    final language = context.read<SettingsProvider>().language;
     final confirmed = await showConfirmDeleteDialog(
       context,
-      title: AppStrings.of(context, 'Delete topic?'),
-      message: AppStrings.of(
-        context,
+      title: AppStrings.text('Delete topic?', language),
+      message: AppStrings.text(
         '"${topic.name}" and all of its flashcards will be permanently '
         'deleted. Past quiz results are kept, but will show as whole-course '
         'quizzes.',
+        language,
       ),
     );
     if (!confirmed) return;

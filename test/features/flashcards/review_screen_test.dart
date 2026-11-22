@@ -13,8 +13,9 @@ import 'package:dwell/features/flashcards/review_provider.dart';
 import 'package:dwell/features/flashcards/review_screen.dart';
 
 void main() {
-  testWidgets('enter reveals the answer and number keys rate the card',
-      (tester) async {
+  testWidgets('enter reveals the answer and number keys rate the card', (
+    tester,
+  ) async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repository = FlashcardRepository(db);
@@ -25,9 +26,9 @@ void main() {
     final topicId = await db
         .into(db.topics)
         .insert(TopicsCompanion.insert(courseId: courseId, name: 'Topic'));
-    final topic = await (db.select(db.topics)
-          ..where((t) => t.id.equals(topicId)))
-        .getSingle();
+    final topic = await (db.select(
+      db.topics,
+    )..where((t) => t.id.equals(topicId))).getSingle();
     await repository.addFlashcard(
       topicId: topicId,
       front: 'Question',
@@ -59,13 +60,15 @@ void main() {
             create: (_) => SettingsProvider(),
           ),
         ],
-        child: MaterialApp(
-          home: ReviewScreen(topic: topic),
-        ),
+        child: MaterialApp(home: ReviewScreen(topic: topic)),
       ),
     );
 
     expect(find.text('Question'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Question')).textAlign,
+      TextAlign.center,
+    );
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
 
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
@@ -75,5 +78,10 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.digit2);
     await tester.pump();
     expect(provider.isComplete, isTrue);
+
+    await tester.tap(find.text('Undo last response'));
+    await tester.pump();
+    expect(provider.isComplete, isFalse);
+    expect(find.text('Response undone'), findsOneWidget);
   });
 }

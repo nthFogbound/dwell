@@ -258,7 +258,7 @@ class _CardView extends StatelessWidget {
                                 child: Center(
                                   child: SingleChildScrollView(
                                     child: Align(
-                                      alignment: Alignment.centerLeft,
+                                      alignment: Alignment.center,
                                       child: AnimatedSwitcher(
                                         duration: const Duration(
                                           milliseconds: 180,
@@ -266,6 +266,7 @@ class _CardView extends StatelessWidget {
                                         child: Text(
                                           revealed ? card.back : card.front,
                                           key: ValueKey(revealed),
+                                          textAlign: TextAlign.center,
                                           style: theme.textTheme.headlineSmall
                                               ?.copyWith(
                                                 fontWeight: FontWeight.w500,
@@ -349,10 +350,11 @@ class _CardView extends StatelessWidget {
   }
 
   Future<void> _undoResponse(BuildContext context) async {
+    final language = context.read<SettingsProvider>().language;
     final undone = await provider.undoLastResponse();
     if (!undone || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppStrings.of(context, 'Response undone'))),
+      SnackBar(content: Text(AppStrings.text('Response undone', language))),
     );
   }
 }
@@ -425,12 +427,12 @@ class _Summary extends StatelessWidget {
               AppStrings.of(context, 'Session complete'),
               style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               AppStrings.of(context, 'Nice work — $accuracyPercent% accuracy!'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             _SummaryStat(
               label: AppStrings.of(context, 'Unique cards reviewed'),
               value: '${provider.reviewedCount}',
@@ -451,14 +453,14 @@ class _Summary extends StatelessWidget {
               label: AppStrings.of(context, 'Missed cards'),
               value: '${provider.missedCardsCount}',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: provider.restart,
               icon: const Icon(Icons.restart_alt),
               label: Text(AppStrings.of(context, 'Study Again')),
               style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             FilledButton(
               onPressed: () =>
                   Navigator.of(context).popUntil((route) => route.isFirst),
@@ -477,10 +479,11 @@ class _Summary extends StatelessWidget {
   }
 
   Future<void> _undoFromSummary(BuildContext context) async {
+    final language = context.read<SettingsProvider>().language;
     final undone = await provider.undoLastResponse();
     if (!undone || !context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppStrings.of(context, 'Response undone'))),
+      SnackBar(content: Text(AppStrings.text('Response undone', language))),
     );
   }
 }
@@ -493,7 +496,7 @@ class _SummaryStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 3),
+    padding: const EdgeInsets.symmetric(vertical: 5),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [

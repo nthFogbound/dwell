@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/localization/app_strings.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../data/database/app_database.dart';
 import 'courses_provider.dart';
 import 'widgets/course_form_dialog.dart';
@@ -43,13 +44,14 @@ class CoursesScreen extends StatelessWidget {
 
   Future<void> _deleteCourse(BuildContext context, Course course) async {
     final provider = context.read<CoursesProvider>();
+    final language = context.read<SettingsProvider>().language;
     final confirmed = await showConfirmDeleteDialog(
       context,
-      title: AppStrings.of(context, 'Delete course?'),
-      message: AppStrings.of(
-        context,
+      title: AppStrings.text('Delete course?', language),
+      message: AppStrings.text(
         '"${course.name}" and everything in it will be permanently deleted: '
         'its topics, flashcards and quiz history.',
+        language,
       ),
     );
     if (!confirmed) return;

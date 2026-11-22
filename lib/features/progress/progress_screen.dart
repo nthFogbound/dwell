@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/localization/app_strings.dart';
+import '../../core/settings/settings_provider.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/progress_repository.dart';
 import '../../shared/widgets/status_views.dart';
@@ -47,13 +48,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Future<void> _exportBackup() async {
     final db = context.read<AppDatabase>();
+    final language = context.read<SettingsProvider>().language;
     try {
       final filePath = await _BackupService(db).exportData();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${AppStrings.of(context, 'Backup exported to')} $filePath',
+            '${AppStrings.text('Backup exported to', language)} $filePath',
           ),
         ),
       );
@@ -62,7 +64,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${AppStrings.of(context, 'Something went wrong:')} $error',
+            AppStrings.text('Something went wrong: $error', language),
           ),
         ),
       );
@@ -71,14 +73,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Future<void> _restoreLatestBackup() async {
     final db = context.read<AppDatabase>();
+    final language = context.read<SettingsProvider>().language;
     try {
       final restored = await _BackupService(db).restoreLatest();
       if (!mounted) return;
       final message = restored
-          ? AppStrings.of(context, 'Latest backup restored.')
-          : AppStrings.of(
-              context,
+          ? AppStrings.text('Latest backup restored.', language)
+          : AppStrings.text(
               'No backup file was found in your Documents folder.',
+              language,
             );
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
@@ -87,7 +90,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${AppStrings.of(context, 'Something went wrong:')} $error',
+            AppStrings.text('Something went wrong: $error', language),
           ),
         ),
       );
