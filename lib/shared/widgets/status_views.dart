@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/app_spacing.dart';
+import '../../core/localization/app_strings.dart';
 
 /// Centered spinner shown while data loads.
 class LoadingView extends StatelessWidget {
@@ -35,9 +36,7 @@ class EmptyState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
+            style: Theme.of(context).textTheme.bodyLarge
                 ?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
@@ -62,7 +61,7 @@ class ErrorView extends StatelessWidget {
           Icon(Icons.error_outline, size: 48, color: scheme.error),
           const SizedBox(height: AppSpacing.md),
           Text(
-            'Something went wrong: $error',
+            AppStrings.of(context, 'Something went wrong: $error'),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyLarge,
           ),

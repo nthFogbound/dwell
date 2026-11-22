@@ -19,6 +19,18 @@ class CourseProgress {
       totalCards == 0 ? 0 : masteredCards / totalCards;
 }
 
+class DailyStudySummary {
+  const DailyStudySummary({
+    required this.reviewsToday,
+    required this.cardsDueToday,
+    required this.cardsOverdue,
+  });
+
+  final int reviewsToday;
+  final int cardsDueToday;
+  final int cardsOverdue;
+}
+
 /// One finished quiz, joined with names for display.
 class QuizHistoryEntry {
   const QuizHistoryEntry({
@@ -46,6 +58,38 @@ class ProgressRepository {
 
   /// A card in this Leitner box or higher counts as "mastered".
   static const masteredBox = 4;
+
+  Stream<DailyStudySummary> watchDailyStudySummary() {
+    final cards = _db.flashcards;
+    return (_db.select(cards)
+          ..orderBy([(card) => OrderingTerm.asc(card.id)]))
+        .watch()
+        .map((rows) {
+          final now = DateTime.now();
+          final todayStart = DateTime(now.year, now.month, now.day);
+          final todayEnd = todayStart.add(const Duration(days: 1));
+          final reviewsToday = rows.where((card) {
+            final reviewedAt = card.lastReviewedAt;
+            return reviewedAt != null &&
+                !reviewedAt.isBefore(todayStart) &&
+                reviewedAt.isBefore(todayEnd);
+          }).length;
+          final cardsDueToday = rows.where((card) {
+            final dueAt = card.dueAt;
+            return !dueAt.isBefore(todayStart) && dueAt.isBefore(todayEnd);
+          }).length;
+          final cardsOverdue = rows.where((card) {
+            final dueAt = card.dueAt;
+            return dueAt.isBefore(now);
+          }).length;
+
+          return DailyStudySummary(
+            reviewsToday: reviewsToday,
+            cardsDueToday: cardsDueToday,
+            cardsOverdue: cardsOverdue,
+          );
+        });
+  }
 
   /// Per-course card counts. Courses with no cards still appear (with 0).
   Stream<List<CourseProgress>> watchCourseProgress() {

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Caps content width and centers it, so pages stay readable on wide monitors.
 class ContentWidth extends StatelessWidget {

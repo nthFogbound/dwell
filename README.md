@@ -6,13 +6,20 @@ Dwell is a local-first study app for Windows. Your courses, flashcards and progr
 
 - **Organize:** create courses and group them into topics.
 - **Make flashcards:** add, edit and delete cards inside each topic.
-- **Review:** study due cards with spaced repetition. Cards you remember come back later, and missed cards return sooner.
+- **Review:** study due cards with spaced repetition using an animated, readable card view. Cards you remember come back later, and missed cards return sooner.
+- **Quick add:** capture a front and back from anywhere with `Ctrl+Shift+N`; the last-used topic is remembered.
+- **Repeat missed cards:** missed cards return during the same session after the configurable gap in Settings. Undo up to five recent responses with `Ctrl+Z`.
+- **Session summaries:** see unique cards reviewed, attempts, accuracy, time spent and missed cards when you finish or leave a review.
+- **Find cards:** search card questions, answers and tags, and filter by tag.
 - **Take quizzes:** multiple-choice quizzes built from your flashcards, for a whole course or a single topic.
 - **Track progress:** see how many cards you've mastered, per course and overall, plus your recent quiz scores.
+- **Personalize:** choose System, Light or Dark appearance, and English or Filipino (Tagalog) in Settings.
 
 ## Keyboard shortcuts
 
 - **Review:** `Space` shows the answer, `←` marks a card missed, `→` marks it remembered.
+- **Quick add:** `Ctrl+Shift+N` opens capture, `Ctrl+Enter` saves and closes, `Ctrl+Shift+Enter` saves and adds another, and `Esc` cancels.
+- **Review:** `Ctrl+Z` undoes a response; `Esc` ends the session and opens its summary. On the summary, `R` studies again and `D` returns to the dashboard.
 - **Quiz:** `1`-`4` choose an answer, `Enter` moves to the next question.
 
 ## Requirements

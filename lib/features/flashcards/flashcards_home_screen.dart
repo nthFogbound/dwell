@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/topic_repository.dart';
 import '../courses/courses_provider.dart';
@@ -31,7 +32,7 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Flashcards',
+            AppStrings.of(context, 'Flashcards'),
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 16),
@@ -47,8 +48,11 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
       return ErrorView(error: coursesProvider.error!);
     }
     if (coursesProvider.courses.isEmpty) {
-      return const EmptyState(
-        message: 'Create a course and add topics to get started.',
+      return EmptyState(
+        message: AppStrings.of(
+          context,
+          'Create a course and add topics to get started.',
+        ),
         icon: Icons.school_outlined,
       );
     }
@@ -59,7 +63,7 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DropdownMenu<Course>(
-          label: const Text('Course'),
+          label: Text(AppStrings.of(context, 'Course')),
           expandedInsets: EdgeInsets.zero, // fill the available width
           dropdownMenuEntries: [
             for (final c in coursesProvider.courses)
@@ -70,10 +74,13 @@ class _FlashcardsHomeScreenState extends State<FlashcardsHomeScreen> {
         const SizedBox(height: 16),
         Expanded(
           child: course == null
-              ? const EmptyState(
-                  message: 'Choose a course to see its topics.',
+              ? EmptyState(
+                  message: AppStrings.of(
+                    context,
+                    'Choose a course to see its topics.',
+                  ),
                   icon: Icons.folder_open_outlined,
-              )
+                )
               : ChangeNotifierProvider(
                   key: ValueKey(course.id),
                   create: (context) => TopicsProvider(
@@ -97,8 +104,11 @@ class _TopicList extends StatelessWidget {
     if (provider.isLoading) return const LoadingView();
     if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.topics.isEmpty) {
-      return const EmptyState(
-        message: 'No topics in this course yet. Add one in the Courses tab.',
+      return EmptyState(
+        message: AppStrings.of(
+          context,
+          'No topics in this course yet. Add one in the Courses tab.',
+        ),
         icon: Icons.folder_open_outlined,
       );
     }

@@ -665,6 +665,16 @@ class $FlashcardsTable extends Flashcards
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+    'tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _boxMeta = const VerificationMeta('box');
   @override
   late final GeneratedColumn<int> box = GeneratedColumn<int>(
@@ -715,6 +725,7 @@ class $FlashcardsTable extends Flashcards
     topicId,
     front,
     back,
+    tags,
     box,
     dueAt,
     lastReviewedAt,
@@ -758,6 +769,12 @@ class $FlashcardsTable extends Flashcards
       );
     } else if (isInserting) {
       context.missing(_backMeta);
+    }
+    if (data.containsKey('tags')) {
+      context.handle(
+        _tagsMeta,
+        tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta),
+      );
     }
     if (data.containsKey('box')) {
       context.handle(
@@ -811,6 +828,10 @@ class $FlashcardsTable extends Flashcards
         DriftSqlType.string,
         data['${effectivePrefix}back'],
       )!,
+      tags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags'],
+      )!,
       box: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}box'],
@@ -841,6 +862,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
   final int topicId;
   final String front;
   final String back;
+  final String tags;
   final int box;
   final DateTime dueAt;
   final DateTime? lastReviewedAt;
@@ -850,6 +872,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
     required this.topicId,
     required this.front,
     required this.back,
+    required this.tags,
     required this.box,
     required this.dueAt,
     this.lastReviewedAt,
@@ -862,6 +885,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
     map['topic_id'] = Variable<int>(topicId);
     map['front'] = Variable<String>(front);
     map['back'] = Variable<String>(back);
+    map['tags'] = Variable<String>(tags);
     map['box'] = Variable<int>(box);
     map['due_at'] = Variable<DateTime>(dueAt);
     if (!nullToAbsent || lastReviewedAt != null) {
@@ -877,6 +901,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
       topicId: Value(topicId),
       front: Value(front),
       back: Value(back),
+      tags: Value(tags),
       box: Value(box),
       dueAt: Value(dueAt),
       lastReviewedAt: lastReviewedAt == null && nullToAbsent
@@ -896,6 +921,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
       topicId: serializer.fromJson<int>(json['topicId']),
       front: serializer.fromJson<String>(json['front']),
       back: serializer.fromJson<String>(json['back']),
+      tags: serializer.fromJson<String>(json['tags']),
       box: serializer.fromJson<int>(json['box']),
       dueAt: serializer.fromJson<DateTime>(json['dueAt']),
       lastReviewedAt: serializer.fromJson<DateTime?>(json['lastReviewedAt']),
@@ -910,6 +936,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
       'topicId': serializer.toJson<int>(topicId),
       'front': serializer.toJson<String>(front),
       'back': serializer.toJson<String>(back),
+      'tags': serializer.toJson<String>(tags),
       'box': serializer.toJson<int>(box),
       'dueAt': serializer.toJson<DateTime>(dueAt),
       'lastReviewedAt': serializer.toJson<DateTime?>(lastReviewedAt),
@@ -922,6 +949,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
     int? topicId,
     String? front,
     String? back,
+    String? tags,
     int? box,
     DateTime? dueAt,
     Value<DateTime?> lastReviewedAt = const Value.absent(),
@@ -931,6 +959,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
     topicId: topicId ?? this.topicId,
     front: front ?? this.front,
     back: back ?? this.back,
+    tags: tags ?? this.tags,
     box: box ?? this.box,
     dueAt: dueAt ?? this.dueAt,
     lastReviewedAt: lastReviewedAt.present
@@ -944,6 +973,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
       topicId: data.topicId.present ? data.topicId.value : this.topicId,
       front: data.front.present ? data.front.value : this.front,
       back: data.back.present ? data.back.value : this.back,
+      tags: data.tags.present ? data.tags.value : this.tags,
       box: data.box.present ? data.box.value : this.box,
       dueAt: data.dueAt.present ? data.dueAt.value : this.dueAt,
       lastReviewedAt: data.lastReviewedAt.present
@@ -960,6 +990,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
           ..write('topicId: $topicId, ')
           ..write('front: $front, ')
           ..write('back: $back, ')
+          ..write('tags: $tags, ')
           ..write('box: $box, ')
           ..write('dueAt: $dueAt, ')
           ..write('lastReviewedAt: $lastReviewedAt, ')
@@ -974,6 +1005,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
     topicId,
     front,
     back,
+    tags,
     box,
     dueAt,
     lastReviewedAt,
@@ -987,6 +1019,7 @@ class Flashcard extends DataClass implements Insertable<Flashcard> {
           other.topicId == this.topicId &&
           other.front == this.front &&
           other.back == this.back &&
+          other.tags == this.tags &&
           other.box == this.box &&
           other.dueAt == this.dueAt &&
           other.lastReviewedAt == this.lastReviewedAt &&
@@ -998,6 +1031,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
   final Value<int> topicId;
   final Value<String> front;
   final Value<String> back;
+  final Value<String> tags;
   final Value<int> box;
   final Value<DateTime> dueAt;
   final Value<DateTime?> lastReviewedAt;
@@ -1007,6 +1041,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
     this.topicId = const Value.absent(),
     this.front = const Value.absent(),
     this.back = const Value.absent(),
+    this.tags = const Value.absent(),
     this.box = const Value.absent(),
     this.dueAt = const Value.absent(),
     this.lastReviewedAt = const Value.absent(),
@@ -1017,6 +1052,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
     required int topicId,
     required String front,
     required String back,
+    this.tags = const Value.absent(),
     this.box = const Value.absent(),
     this.dueAt = const Value.absent(),
     this.lastReviewedAt = const Value.absent(),
@@ -1029,6 +1065,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
     Expression<int>? topicId,
     Expression<String>? front,
     Expression<String>? back,
+    Expression<String>? tags,
     Expression<int>? box,
     Expression<DateTime>? dueAt,
     Expression<DateTime>? lastReviewedAt,
@@ -1039,6 +1076,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
       if (topicId != null) 'topic_id': topicId,
       if (front != null) 'front': front,
       if (back != null) 'back': back,
+      if (tags != null) 'tags': tags,
       if (box != null) 'box': box,
       if (dueAt != null) 'due_at': dueAt,
       if (lastReviewedAt != null) 'last_reviewed_at': lastReviewedAt,
@@ -1051,6 +1089,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
     Value<int>? topicId,
     Value<String>? front,
     Value<String>? back,
+    Value<String>? tags,
     Value<int>? box,
     Value<DateTime>? dueAt,
     Value<DateTime?>? lastReviewedAt,
@@ -1061,6 +1100,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
       topicId: topicId ?? this.topicId,
       front: front ?? this.front,
       back: back ?? this.back,
+      tags: tags ?? this.tags,
       box: box ?? this.box,
       dueAt: dueAt ?? this.dueAt,
       lastReviewedAt: lastReviewedAt ?? this.lastReviewedAt,
@@ -1082,6 +1122,9 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
     }
     if (back.present) {
       map['back'] = Variable<String>(back.value);
+    }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
     }
     if (box.present) {
       map['box'] = Variable<int>(box.value);
@@ -1105,6 +1148,7 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
           ..write('topicId: $topicId, ')
           ..write('front: $front, ')
           ..write('back: $back, ')
+          ..write('tags: $tags, ')
           ..write('box: $box, ')
           ..write('dueAt: $dueAt, ')
           ..write('lastReviewedAt: $lastReviewedAt, ')
@@ -2441,6 +2485,7 @@ typedef $$FlashcardsTableCreateCompanionBuilder = FlashcardsCompanion Function({
   required int topicId,
   required String front,
   required String back,
+  Value<String> tags,
   Value<int> box,
   Value<DateTime> dueAt,
   Value<DateTime?> lastReviewedAt,
@@ -2451,6 +2496,7 @@ typedef $$FlashcardsTableUpdateCompanionBuilder = FlashcardsCompanion Function({
   Value<int> topicId,
   Value<String> front,
   Value<String> back,
+  Value<String> tags,
   Value<int> box,
   Value<DateTime> dueAt,
   Value<DateTime?> lastReviewedAt,
@@ -2500,6 +2546,11 @@ class $$FlashcardsTableFilterComposer
 
   ColumnFilters<String> get back => $composableBuilder(
     column: $table.back,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tags => $composableBuilder(
+    column: $table.tags,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2571,6 +2622,11 @@ class $$FlashcardsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get tags => $composableBuilder(
+    column: $table.tags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get box => $composableBuilder(
     column: $table.box,
     builder: (column) => ColumnOrderings(column),
@@ -2632,6 +2688,9 @@ class $$FlashcardsTableAnnotationComposer
 
   GeneratedColumn<String> get back =>
       $composableBuilder(column: $table.back, builder: (column) => column);
+
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
 
   GeneratedColumn<int> get box =>
       $composableBuilder(column: $table.box, builder: (column) => column);
@@ -2703,6 +2762,7 @@ class $$FlashcardsTableTableManager
                 Value<int> topicId = const Value.absent(),
                 Value<String> front = const Value.absent(),
                 Value<String> back = const Value.absent(),
+                Value<String> tags = const Value.absent(),
                 Value<int> box = const Value.absent(),
                 Value<DateTime> dueAt = const Value.absent(),
                 Value<DateTime?> lastReviewedAt = const Value.absent(),
@@ -2712,6 +2772,7 @@ class $$FlashcardsTableTableManager
                 topicId: topicId,
                 front: front,
                 back: back,
+                tags: tags,
                 box: box,
                 dueAt: dueAt,
                 lastReviewedAt: lastReviewedAt,
@@ -2723,6 +2784,7 @@ class $$FlashcardsTableTableManager
                 required int topicId,
                 required String front,
                 required String back,
+                Value<String> tags = const Value.absent(),
                 Value<int> box = const Value.absent(),
                 Value<DateTime> dueAt = const Value.absent(),
                 Value<DateTime?> lastReviewedAt = const Value.absent(),
@@ -2732,6 +2794,7 @@ class $$FlashcardsTableTableManager
                 topicId: topicId,
                 front: front,
                 back: back,
+                tags: tags,
                 box: box,
                 dueAt: dueAt,
                 lastReviewedAt: lastReviewedAt,

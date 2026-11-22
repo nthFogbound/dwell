@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/topic_repository.dart';
 import 'topics_provider.dart';
@@ -52,11 +53,13 @@ class CourseDetailScreen extends StatelessWidget {
     final provider = context.read<TopicsProvider>();
     final confirmed = await showConfirmDeleteDialog(
       context,
-      title: 'Delete topic?',
-      message:
-          '"${topic.name}" and all of its flashcards will be permanently '
-          'deleted. Past quiz results are kept, but will show as whole-course '
-          'quizzes.',
+      title: AppStrings.of(context, 'Delete topic?'),
+      message: AppStrings.of(
+        context,
+        '"${topic.name}" and all of its flashcards will be permanently '
+        'deleted. Past quiz results are kept, but will show as whole-course '
+        'quizzes.',
+      ),
     );
     if (!confirmed) return;
     await provider.deleteTopic(topic.id);
@@ -72,41 +75,44 @@ class CourseDetailScreen extends StatelessWidget {
       body: ContentWidth(
         child: Padding(
           padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (description != null) ...[
-              Text(description, maxLines: 3, overflow: TextOverflow.ellipsis),
-            ],
-            Row(
-              children: [
-                Text(
-                  'Topics',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: () => _addTopic(context),
-                  icon: const Icon(Icons.add),
-                  label: const Text('New topic'),
-                ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (description != null) ...[
+                Text(description, maxLines: 3, overflow: TextOverflow.ellipsis),
               ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(child: _buildBody(context, provider)),
-          ],
+              Row(
+                children: [
+                  Text(
+                    AppStrings.of(context, 'Topics'),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const Spacer(),
+                  FilledButton.icon(
+                    onPressed: () => _addTopic(context),
+                    icon: const Icon(Icons.add),
+                    label: Text(AppStrings.of(context, 'New topic')),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(child: _buildBody(context, provider)),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildBody(BuildContext context, TopicsProvider provider) {
     if (provider.isLoading) return const LoadingView();
     if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.topics.isEmpty) {
-      return const EmptyState(
-        message: 'No topics yet. Add one to organize this course.',
+      return EmptyState(
+        message: AppStrings.of(
+          context,
+          'No topics yet. Add one to organize this course.',
+        ),
         icon: Icons.folder_open_outlined,
       );
     }
@@ -126,12 +132,12 @@ class CourseDetailScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  tooltip: 'Edit',
+                  tooltip: AppStrings.of(context, 'Edit'),
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () => _editTopic(context, topic),
                 ),
                 IconButton(
-                  tooltip: 'Delete',
+                  tooltip: AppStrings.of(context, 'Delete'),
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _deleteTopic(context, topic),
                 ),

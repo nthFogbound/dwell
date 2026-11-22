@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/localization/app_strings.dart';
 import '../../data/database/app_database.dart';
 import 'courses_provider.dart';
 import 'widgets/course_form_dialog.dart';
@@ -44,10 +45,12 @@ class CoursesScreen extends StatelessWidget {
     final provider = context.read<CoursesProvider>();
     final confirmed = await showConfirmDeleteDialog(
       context,
-      title: 'Delete course?',
-      message:
-          '"${course.name}" and everything in it will be permanently deleted: '
-          'its topics, flashcards and quiz history.',
+      title: AppStrings.of(context, 'Delete course?'),
+      message: AppStrings.of(
+        context,
+        '"${course.name}" and everything in it will be permanently deleted: '
+        'its topics, flashcards and quiz history.',
+      ),
     );
     if (!confirmed) return;
     await provider.deleteCourse(course.id);
@@ -65,14 +68,14 @@ class CoursesScreen extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Courses',
+                AppStrings.of(context, 'Courses'),
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const Spacer(),
               FilledButton.icon(
                 onPressed: () => _addCourse(context),
                 icon: const Icon(Icons.add),
-                label: const Text('New course'),
+                label: Text(AppStrings.of(context, 'New course')),
               ),
             ],
           ),
@@ -87,8 +90,11 @@ class CoursesScreen extends StatelessWidget {
     if (provider.isLoading) return const LoadingView();
     if (provider.error != null) return ErrorView(error: provider.error!);
     if (provider.courses.isEmpty) {
-      return const EmptyState(
-        message: 'No courses yet. Create one to get started.',
+      return EmptyState(
+        message: AppStrings.of(
+          context,
+          'No courses yet. Create one to get started.',
+        ),
         icon: Icons.school_outlined,
       );
     }
@@ -115,12 +121,12 @@ class CoursesScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  tooltip: 'Edit',
+                  tooltip: AppStrings.of(context, 'Edit'),
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () => _editCourse(context, course),
                 ),
                 IconButton(
-                  tooltip: 'Delete',
+                  tooltip: AppStrings.of(context, 'Delete'),
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _deleteCourse(context, course),
                 ),

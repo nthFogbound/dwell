@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../../core/localization/app_strings.dart';
 
 /// Asks the user to confirm a delete. Returns true only if they pressed Delete.
 Future<bool> showConfirmDeleteDialog(
@@ -14,7 +16,7 @@ Future<bool> showConfirmDeleteDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('Cancel'),
+          child: Text(AppStrings.of(dialogContext, 'Cancel')),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -22,7 +24,7 @@ Future<bool> showConfirmDeleteDialog(
             foregroundColor: Theme.of(dialogContext).colorScheme.onError,
           ),
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('Delete'),
+          child: Text(AppStrings.of(dialogContext, 'Delete')),
         ),
       ],
     ),

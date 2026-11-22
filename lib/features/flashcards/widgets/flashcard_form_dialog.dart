@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
+import '../../../core/localization/app_strings.dart';
 import '../../../data/database/app_database.dart';
 
 /// What the dialog returns when the user saves.
-typedef FlashcardFormResult = ({String front, String back});
+typedef FlashcardFormResult = ({String front, String back, String tags});
 
 /// Opens the create/edit dialog. Pass [flashcard] to edit; omit it to create.
 /// Returns null if the user cancels.
@@ -30,28 +31,35 @@ class _FlashcardFormDialogState extends State<_FlashcardFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _front;
   late final TextEditingController _back;
+  late final TextEditingController _tags;
 
   @override
   void initState() {
     super.initState();
     _front = TextEditingController(text: widget.flashcard?.front);
     _back = TextEditingController(text: widget.flashcard?.back);
+    _tags = TextEditingController(text: widget.flashcard?.tags ?? '');
   }
 
   @override
   void dispose() {
     _front.dispose();
     _back.dispose();
+    _tags.dispose();
     super.dispose();
   }
 
-  String? _required(String? value) =>
-      (value == null || value.trim().isEmpty) ? 'Required' : null;
+  String? _required(String? value) => (value == null || value.trim().isEmpty)
+      ? AppStrings.of(context, 'Required')
+      : null;
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context)
-        .pop((front: _front.text.trim(), back: _back.text.trim()));
+    Navigator.of(context).pop((
+      front: _front.text.trim(),
+      back: _back.text.trim(),
+      tags: _tags.text.trim(),
+    ));
   }
 
   @override
@@ -59,7 +67,9 @@ class _FlashcardFormDialogState extends State<_FlashcardFormDialog> {
     final isEditing = widget.flashcard != null;
 
     return AlertDialog(
-      title: Text(isEditing ? 'Edit flashcard' : 'New flashcard'),
+      title: Text(
+        AppStrings.of(context, isEditing ? 'Edit flashcard' : 'New flashcard'),
+      ),
       content: SizedBox(
         width: 480,
         child: Form(
@@ -73,8 +83,8 @@ class _FlashcardFormDialogState extends State<_FlashcardFormDialog> {
                 minLines: 2,
                 maxLines: 6,
                 maxLength: 1000, // matches the table's column limit
-                decoration: const InputDecoration(
-                  labelText: 'Front (question)',
+                decoration: InputDecoration(
+                  labelText: AppStrings.of(context, 'Front (question)'),
                   border: OutlineInputBorder(),
                 ),
                 validator: _required,
@@ -85,11 +95,21 @@ class _FlashcardFormDialogState extends State<_FlashcardFormDialog> {
                 minLines: 2,
                 maxLines: 6,
                 maxLength: 2000, // matches the table's column limit
-                decoration: const InputDecoration(
-                  labelText: 'Back (answer)',
+                decoration: InputDecoration(
+                  labelText: AppStrings.of(context, 'Back (answer)'),
                   border: OutlineInputBorder(),
                 ),
                 validator: _required,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _tags,
+                maxLength: 300,
+                decoration: InputDecoration(
+                  labelText: AppStrings.of(context, 'Tags (optional)'),
+                  hintText: 'biology, exam, chapter 2',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ],
           ),
@@ -98,11 +118,11 @@ class _FlashcardFormDialogState extends State<_FlashcardFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(AppStrings.of(context, 'Cancel')),
         ),
         FilledButton(
           onPressed: _submit,
-          child: Text(isEditing ? 'Save' : 'Add'),
+          child: Text(AppStrings.of(context, isEditing ? 'Save' : 'Add')),
         ),
       ],
     );

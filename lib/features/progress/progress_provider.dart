@@ -18,24 +18,42 @@ class ProgressProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
     }, onError: _onError);
+    _dailySummarySubscription = _repository.watchDailyStudySummary().listen(
+      (summary) {
+        _dailySummary = summary;
+        _dailyLoaded = true;
+        _error = null;
+        notifyListeners();
+      },
+      onError: _onError,
+    );
   }
 
   final ProgressRepository _repository;
   late final StreamSubscription<List<CourseProgress>> _courseSubscription;
   late final StreamSubscription<List<QuizHistoryEntry>> _historySubscription;
+  late final StreamSubscription<DailyStudySummary> _dailySummarySubscription;
 
   List<CourseProgress> _courseProgress = [];
   List<QuizHistoryEntry> _history = [];
+  DailyStudySummary _dailySummary = const DailyStudySummary(
+    reviewsToday: 0,
+    cardsDueToday: 0,
+    cardsOverdue: 0,
+  );
   bool _coursesLoaded = false;
   bool _historyLoaded = false;
+  bool _dailyLoaded = false;
   Object? _error;
 
   List<CourseProgress> get courseProgress => _courseProgress;
   List<QuizHistoryEntry> get history => _history;
+  DailyStudySummary get dailySummary => _dailySummary;
   Object? get error => _error;
 
-  /// Loading until both streams have delivered their first result.
-  bool get isLoading => _error == null && !(_coursesLoaded && _historyLoaded);
+  /// Loading until all streams have delivered their first result.
+  bool get isLoading =>
+      _error == null && !(_coursesLoaded && _historyLoaded && _dailyLoaded);
 
   int get totalCards => _courseProgress.fold(0, (sum, c) => sum + c.totalCards);
   int get masteredCards =>
@@ -62,6 +80,7 @@ class ProgressProvider extends ChangeNotifier {
   void dispose() {
     _courseSubscription.cancel();
     _historySubscription.cancel();
+    _dailySummarySubscription.cancel();
     super.dispose();
   }
 }
