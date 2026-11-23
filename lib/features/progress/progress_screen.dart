@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart' hide Column;
+import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +11,7 @@ import '../../core/settings/settings_provider.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/progress_repository.dart';
 import '../../shared/widgets/status_views.dart';
+import 'backup_service.dart';
 import 'progress_provider.dart';
 
 class ProgressScreen extends StatefulWidget {
@@ -50,7 +51,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final db = context.read<AppDatabase>();
     final language = context.read<SettingsProvider>().language;
     try {
-      final filePath = await _BackupService(db).exportData();
+      final directory = await FilePicker.pickDirectory(
+        dialogTitle: AppStrings.text('Choose backup folder', language),
+      );
+      if (directory == null) return;
+
+      final filePath = await BackupService(db)
+          .exportData(directory.toFilePath());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -71,11 +78,48 @@ class _ProgressScreenState extends State<ProgressScreen> {
     }
   }
 
+  Future<void> _importBackup() async {
+    final db = context.read<AppDatabase>();
+    final language = context.read<SettingsProvider>().language;
+    try {
+      final file = await FilePicker.pickFile(
+        dialogTitle: AppStrings.text('Choose backup file', language),
+        type: FileType.custom,
+        allowedExtensions: const ['json'],
+      );
+      if (file == null) return;
+
+      final filePath = file.path;
+      if (filePath == null) {
+        throw const FormatException('The selected backup file is unavailable.');
+      }
+
+      await BackupService(db).importData(filePath);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppStrings.text('Backup imported successfully.', language),
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppStrings.text('Something went wrong: $error', language),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _restoreLatestBackup() async {
     final db = context.read<AppDatabase>();
     final language = context.read<SettingsProvider>().language;
     try {
-      final restored = await _BackupService(db).restoreLatest();
+      final restored = await BackupService(db).restoreLatest();
       if (!mounted) return;
       final message = restored
           ? AppStrings.text('Latest backup restored.', language)
@@ -184,6 +228,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 onPressed: _exportBackup,
                 icon: const Icon(Icons.download_outlined),
                 label: Text(AppStrings.of(context, 'Export backup')),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _importBackup,
+                icon: const Icon(Icons.folder_open_outlined),
+                label: Text(AppStrings.of(context, 'Import backup')),
               ),
             ),
             const SizedBox(width: 12),
@@ -467,199 +519,5 @@ class _DailyGoalStore {
     final payload = {'dailyGoal': goal.clamp(5, 100)};
     await file.parent.create(recursive: true);
     await file.writeAsString(jsonEncode(payload));
-  }
-}
-
-class _BackupService {
-  _BackupService(this._db);
-
-  final AppDatabase _db;
-
-  Future<Directory> _backupDirectory() async {
-    final docsDir = await getApplicationDocumentsDirectory();
-    final dir = Directory('${docsDir.path}${Platform.pathSeparator}dwell_backups');
-    await dir.create(recursive: true);
-    return dir;
-  }
-
-  Future<String> exportData() async {
-    final courses = await _db.select(_db.courses).get();
-    final topics = await _db.select(_db.topics).get();
-    final flashcards = await _db.select(_db.flashcards).get();
-    final attempts = await _db.select(_db.quizAttempts).get();
-
-    final dir = await _backupDirectory();
-    final stamp = DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
-    final file = File('${dir.path}${Platform.pathSeparator}dwell_backup_$stamp.json');
-    await file.writeAsString(
-      jsonEncode({
-        'version': 1,
-        'exportedAt': DateTime.now().toUtc().toIso8601String(),
-        'courses': courses
-            .map(
-              (course) => {
-                'id': course.id,
-                'name': course.name,
-                'description': course.description,
-                'createdAt': course.createdAt.toIso8601String(),
-              },
-            )
-            .toList(),
-        'topics': topics
-            .map(
-              (topic) => {
-                'id': topic.id,
-                'courseId': topic.courseId,
-                'name': topic.name,
-                'createdAt': topic.createdAt.toIso8601String(),
-              },
-            )
-            .toList(),
-        'flashcards': flashcards
-            .map(
-              (card) => {
-                'id': card.id,
-                'topicId': card.topicId,
-                'front': card.front,
-                'back': card.back,
-                'tags': card.tags,
-                'box': card.box,
-                'dueAt': card.dueAt.toIso8601String(),
-                'lastReviewedAt': card.lastReviewedAt?.toIso8601String(),
-                'createdAt': card.createdAt.toIso8601String(),
-              },
-            )
-            .toList(),
-        'quizAttempts': attempts
-            .map(
-              (attempt) => {
-                'id': attempt.id,
-                'courseId': attempt.courseId,
-                'topicId': attempt.topicId,
-                'totalQuestions': attempt.totalQuestions,
-                'correctAnswers': attempt.correctAnswers,
-                'takenAt': attempt.takenAt.toIso8601String(),
-              },
-            )
-            .toList(),
-      }),
-    );
-    return file.path;
-  }
-
-  Future<bool> restoreLatest() async {
-    final rootDir = await getApplicationDocumentsDirectory();
-    final backupDir = await _backupDirectory();
-    final directories = [rootDir, backupDir];
-    final candidates = <File>[];
-
-    for (final directory in directories) {
-      if (!directory.existsSync()) continue;
-      candidates.addAll(
-        directory
-            .listSync()
-            .whereType<File>()
-            .where((file) => file.path.contains('dwell_backup_'))
-            .toList(),
-      );
-    }
-
-    if (candidates.isEmpty) return false;
-
-    candidates.sort(
-      (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-    );
-    final newest = candidates.first;
-    final payload = jsonDecode(await newest.readAsString());
-    if (payload is! Map<String, dynamic>) {
-      throw const FormatException('Backup file is not valid JSON data.');
-    }
-
-    final data = payload;
-
-    await _db.transaction(() async {
-      await (_db.delete(_db.quizAttempts)).go();
-      await (_db.delete(_db.flashcards)).go();
-      await (_db.delete(_db.topics)).go();
-      await (_db.delete(_db.courses)).go();
-
-      final courseMap = <int, int>{};
-      for (final item in (data['courses'] as List? ?? const [])) {
-        final row = item as Map<String, dynamic>;
-        final id = await _db
-            .into(_db.courses)
-            .insert(
-              CoursesCompanion.insert(
-                name: row['name'] as String,
-                description: Value(row['description'] as String?),
-                createdAt: Value(DateTime.parse(row['createdAt'] as String)),
-              ),
-            );
-        courseMap[row['id'] as int] = id;
-      }
-
-      final topicMap = <int, int>{};
-      for (final item in (data['topics'] as List? ?? const [])) {
-        final row = item as Map<String, dynamic>;
-        final courseId = courseMap[row['courseId'] as int];
-        if (courseId == null) continue;
-        final id = await _db
-            .into(_db.topics)
-            .insert(
-              TopicsCompanion.insert(
-                courseId: courseId,
-                name: row['name'] as String,
-                createdAt: Value(DateTime.parse(row['createdAt'] as String)),
-              ),
-            );
-        topicMap[row['id'] as int] = id;
-      }
-
-      for (final item in (data['flashcards'] as List? ?? const [])) {
-        final row = item as Map<String, dynamic>;
-        final topicId = topicMap[row['topicId'] as int];
-        if (topicId == null) continue;
-        await _db
-            .into(_db.flashcards)
-            .insert(
-              FlashcardsCompanion.insert(
-                topicId: topicId,
-                front: row['front'] as String,
-                back: row['back'] as String,
-                tags: Value((row['tags'] as String?) ?? ''),
-                box: Value((row['box'] as int?) ?? 1),
-                dueAt: Value(DateTime.parse(row['dueAt'] as String)),
-                lastReviewedAt: Value(
-                  row['lastReviewedAt'] == null
-                      ? null
-                      : DateTime.parse(row['lastReviewedAt'] as String),
-                ),
-                createdAt: Value(DateTime.parse(row['createdAt'] as String)),
-              ),
-            );
-      }
-
-      for (final item in (data['quizAttempts'] as List? ?? const [])) {
-        final row = item as Map<String, dynamic>;
-        final courseId = courseMap[row['courseId'] as int];
-        final topicId = row['topicId'] == null
-            ? null
-            : topicMap[row['topicId'] as int];
-        if (courseId == null) continue;
-        await _db
-            .into(_db.quizAttempts)
-            .insert(
-              QuizAttemptsCompanion.insert(
-                courseId: courseId,
-                topicId: Value(topicId),
-                totalQuestions: row['totalQuestions'] as int,
-                correctAnswers: row['correctAnswers'] as int,
-                takenAt: Value(DateTime.parse(row['takenAt'] as String)),
-              ),
-            );
-      }
-    });
-
-    return true;
   }
 }
